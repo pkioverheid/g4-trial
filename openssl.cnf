@@ -1,0 +1,108 @@
+[ default ]
+CRLURI = http://localhost:8080/crl
+CERTURI = http://localhost:8080/certs
+SAN = URI:www.example.com
+
+[ ca ]
+default_ca              = CA_default
+
+[ CA_default ]
+dir                     = ./ca
+certs                   = $dir/certs
+database                = $dir/index.txt
+new_certs_dir           = $dir/newcerts
+serial                  = $dir/serial
+rand_serial             = yes
+certificate             = $dir/certs/TRIALPKIoverheidRootCAG4RootPrivGTLS2024.pem
+private_key             = $dir/private/TRIALPKIoverheidRootCAG4RootPrivGTLS2024.key
+default_md              = sha512
+default_days            = 365
+default_crl_days        = 30
+policy                  = policy_anything
+default_bits            = 4096
+default_md              = sha512
+string_mask             = utf8only
+
+[ policy_anything ]
+countryName             = supplied
+organizationName        = supplied
+commonName              = supplied
+
+# --------------------------------------------------
+# Root CA
+# --------------------------------------------------
+[ req ]
+distinguished_name      = req_ca_dn
+x509_extensions         = v3_ca
+prompt                  = no
+
+[ req_ca_dn ]
+countryName             = NL
+organizationName        = PKIoverheid TRIAL - not for Production use
+commonName              = TRIAL PKIoverheid Root CA - G4 Root Priv G-TLS - 2024
+
+[ v3_ca ]
+basicConstraints        = critical, CA:true
+authorityKeyIdentifier  = keyid:always
+subjectKeyIdentifier    = hash
+keyUsage                = critical, keyCertSign, cRLSign, digitalSignature
+
+# --------------------------------------------------
+# Intermediate (Domain) CA
+# --------------------------------------------------
+[ req_intermediate ]
+distinguished_name      = req_intermediate_dn
+x509_extensions         = v3_intermediate_ca
+prompt                  = no
+
+[ req_intermediate_dn ]
+countryName             = NL
+organizationName        = PKIoverheid TRIAL - not for Production use
+commonName              = TRIAL PKIoverheid Root CA - G4 Intm Priv G-TLS SYS - 2024
+
+[ v3_intermediate_ca ]
+basicConstraints        = critical, CA:true
+authorityKeyIdentifier  = keyid:always,issuer
+authorityInfoAccess     = caIssuers;URI:$ENV::CERTURI/TRIALPKIoverheidRootCAG4RootPrivGTLS2024.cer
+certificatePolicies     = 2.16.528.1.1003.1.2.44.15.38.10, 2.16.528.1.1003.1.2.44.15.39.10, 2.16.528.1.1003.1.2.44.15.35.11, 0.4.0.2042.1.1, 0.4.0.2042.1.2
+extendedKeyUsage        = serverAuth,clientAuth
+crlDistributionPoints   = URI:$ENV::CRLURI/TRIALPKIoverheidRootCAG4RootPrivGTLS2024.crl
+subjectKeyIdentifier    = hash
+keyUsage                = critical, keyCertSign, cRLSign, digitalSignature
+
+# --------------------------------------------------
+# Issuing (TSP) CA
+# --------------------------------------------------
+[ req_issuing ]
+distinguished_name      = req_issuing_dn
+x509_extensions         = v3_issuing_ca
+prompt                  = no
+
+[ req_issuing_dn ]
+countryName             = NL
+organizationName        = My TSP - not for Production use
+commonName              = TRIAL My TSP - G4 PKIo Priv G-TLS SYS - 2024
+
+[ v3_issuing_ca ]
+basicConstraints        = critical, CA:true, pathlen:0
+authorityKeyIdentifier  = keyid:always,issuer
+authorityInfoAccess     = caIssuers;URI:$ENV::CERTURI/TRIALPKIoverheidRootCAG4IntmPrivGTLSSYS2024.cer
+certificatePolicies     = 2.16.528.1.1003.1.2.44.15.39.10, 2.16.528.1.1003.1.2.44.15.35.11, 0.4.0.2042.1.1, 0.4.0.2042.1.2
+extendedKeyUsage        = serverAuth,clientAuth
+crlDistributionPoints   = URI:$ENV::CRLURI/TRIALPKIoverheidRootCAG4IntmPrivGTLSSYS2024.crl
+subjectKeyIdentifier    = hash
+keyUsage                = critical, keyCertSign, cRLSign, digitalSignature
+
+# --------------------------------------------------
+# End entity Certificate
+# --------------------------------------------------
+[ v3_end_entity ]
+basicConstraints        = critical, CA:false
+authorityKeyIdentifier  = keyid,issuer
+authorityInfoAccess     = caIssuers;URI:$ENV::CERTURI/TRIALMyTSPG4PKIoPrivGTLSSYS2024.cer
+certificatePolicies     = 2.16.528.1.1003.1.2.44.15.35.11, 0.4.0.2042.1.1
+extendedKeyUsage        = serverAuth, clientAuth
+crlDistributionPoints   = URI:$ENV::CRLURI/TRIALMyTSPG4PKIoPrivGTLSSYS2024.crl
+subjectAltName          = $ENV::SAN
+subjectKeyIdentifier    = hash
+keyUsage                = critical, digitalSignature, keyEncipherment
