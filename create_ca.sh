@@ -27,7 +27,7 @@ mv ca/certs/cacert.pem ca/certs/$rootbasename.pem
 
 openssl x509 -in ca/certs/$rootbasename.pem -noout -text > ca/certs/$rootbasename.txt
 
-openssl ca ${crlopt} -out ca/crl/$rootbasename.crl
+openssl ca ${crlopt} -days ${rootdays} -out ca/crl/$rootbasename.crl
 openssl crl -in ca/crl/$rootbasename.crl -noout -text > ca/crl/$rootbasename.txt
 
 # Generate and issue Intermediate CA
@@ -39,7 +39,7 @@ intermediatebasename=$(openssl req -in ca/intermediate.csr -noout -subject -name
 mv ca/private/{intermediate,$intermediatebasename}.key
 mv ca/{intermediate,$intermediatebasename}.csr
 
-openssl ca ${caopt} -extensions v3_intermediate_ca -in ca/$intermediatebasename.csr -out ca/certs/$intermediatebasename.pem
+openssl ca ${caopt} -days ${intermediatedays} -extensions v3_intermediate_ca -in ca/$intermediatebasename.csr -out ca/certs/$intermediatebasename.pem
 openssl x509 -in ca/certs/$intermediatebasename.pem -noout -text > ca/certs/$intermediatebasename.txt
 
 openssl ca ${crlopt} -out ca/crl/$intermediatebasename.crl
@@ -54,7 +54,7 @@ issuingbasename=$(openssl req -in ca/issuing.csr -noout -subject -nameopt multil
 mv ca/private/{issuing,$issuingbasename}.key
 mv ca/{issuing,$issuingbasename}.csr
 
-openssl ca ${caopt} -extensions v3_issuing_ca -in ca/$issuingbasename.csr -out ca/certs/$issuingbasename.pem -cert ca/certs/$intermediatebasename.pem -keyfile ca/private/$intermediatebasename.key
+openssl ca ${caopt} -days ${issuingdays} -extensions v3_issuing_ca -in ca/$issuingbasename.csr -out ca/certs/$issuingbasename.pem -cert ca/certs/$intermediatebasename.pem -keyfile ca/private/$intermediatebasename.key
 openssl x509 -in ca/certs/$issuingbasename.pem -noout -text > ca/certs/$issuingbasename.txt
 
 openssl ca ${crlopt} -out ca/crl/$issuingbasename.crl

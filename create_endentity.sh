@@ -67,7 +67,7 @@ dn="/C=${country}/O=${organization}/CN=${commonname}"
 export SAN=$san
 openssl genpkey ${genpkeyopt} -out ca/private/$basename.key
 openssl req ${reqopt} -key ca/private/$basename.key -out ca/$basename.csr -subj "${dn}"
-openssl ca ${caopt} -extensions v3_end_entity -in ca/$basename.csr -out ca/certs/$basename.pem -cert ca/certs/$issuingbasename.pem -keyfile ca/private/$issuingbasename.key
+openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -in ca/$basename.csr -out ca/certs/$basename.pem -cert ca/certs/$issuingbasename.pem -keyfile ca/private/$issuingbasename.key
 openssl x509 -in ca/certs/$basename.pem -noout -text > ca/certs/$basename.txt
 
 echo "Successfully created private key and issued test certificate:"
