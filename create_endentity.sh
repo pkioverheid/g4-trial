@@ -27,6 +27,9 @@ echo "Specify the domain for which you want to create End Entity certificates:"
 issuingbasenames=( "blank" "TRIALMyTSPG4PKIoPrivGTLSSYS2024" )
 issuingbasename=${issuingbasenames[$((catype))]}
 
+policies=( "blank" "policy_g4privatetls" )
+policy=${policies[$((catype))]}
+
 if ! test -f "ca/certs/$issuingbasename.pem"; then
   echo "Issuing certificate does not exists. Create it first using create_ca.sh" && exit 1
 fi
@@ -74,7 +77,7 @@ do
   export SAN=$san
   openssl genpkey ${genpkeyopt} -out ca/private/$basename.key
   openssl req ${reqopt} -key ca/private/$basename.key -out ca/$basename.csr -subj "${dn}"
-  openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -in ca/$basename.csr -out ca/certs/$basename.pem -cert ca/certs/$issuingbasename.pem -keyfile ca/private/$issuingbasename.key
+  openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -policy ${policy} -in ca/$basename.csr -out ca/certs/$basename.pem -cert ca/certs/$issuingbasename.pem -keyfile ca/private/$issuingbasename.key
   openssl x509 -in ca/certs/$basename.pem -noout -text > ca/certs/$basename.txt
 
   outfiles+=("$basename")

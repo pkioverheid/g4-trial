@@ -22,6 +22,7 @@ policy                  = policy_anything
 default_bits            = 4096
 default_md              = sha512
 string_mask             = utf8only
+unique_subject          = no
 
 [ policy_anything ]
 countryName             = supplied
@@ -106,3 +107,7 @@ crlDistributionPoints   = URI:$ENV::CRLURI/TRIALMyTSPG4PKIoPrivGTLSSYS2024.crl
 subjectAltName          = $ENV::SAN
 subjectKeyIdentifier    = hash
 keyUsage                = critical, digitalSignature, keyEncipherment
+
+[ policy_g4privatetls ]
+countryName             = supplied
+organizationName        = supplied
