@@ -1,40 +1,31 @@
 #!/bin/bash
 
-# A POSIX variable
-OPTIND=1         # Reset in case getopts has been used previously in the shell.
+usage() { echo "Usage: $0 [-f input file]" 1>&2; exit 1; }
 
-# Initialize defaults
-country="NL"
-organization="Bedrijfsnaam"
-commonname="End Entity"
-san="URI:www.example.com"
-issuingbasename="TRIALMyTSPG4PKIoPrivGTLSSYS2024"
+inputfile=endentitycerts.txt
 
-usage() { echo "Usage: $0 [-c Two letter country code] [-o Subject Organization name] [-n Subject Common Name]" 1>&2; exit 1; }
-
-while getopts "h?c:o:n:s:" opt; do
+while getopts "h?f:" opt; do
   case "$opt" in
     h|\?)
       usage
       exit 0
       ;;
-    c)  country=$OPTARG
-        if (( ${#country} != 2)); then
-            usage && exit 0
-        fi
-      ;;
-    o)  organization=$OPTARG
-      ;;
-    n)  commonname=$OPTARG
-      ;;
-    s)  san=$OPTARG
+    f)  inputfile=$OPTARG
       ;;
   esac
 done
 
-shift $((OPTIND-1))
+if ! test -f "$inputfile"; then
+  echo "End entity input file $inputfile not found" && usage && exit 1
+fi
 
-[ "${1:-}" = "--" ] && shift
+echo Using "$inputfile"
+
+echo "Specify the domain for which you want to create End Entity certificates:"
+. .prompt
+
+issuingbasenames=( "blank" "TRIALMyTSPG4PKIoPrivGTLSSYS2024" )
+issuingbasename=${issuingbasenames[$((catype))]}
 
 if ! test -f "ca/certs/$issuingbasename.pem"; then
   echo "Issuing certificate does not exists. Create it first using create_ca.sh" && exit 1
@@ -44,32 +35,57 @@ if ! test -f "ca/private/$issuingbasename.key"; then
   echo "Issuing private key does not exist. Create it first using create_ca.sh" && exit 1
 fi
 
-basename=$(echo "$commonname" | tr -d ' -.')
+while IFS=, read country organization commonname san
+do
 
-if test -f "ca/private/$basename.key"; then
-  echo "Private key file exists. Choose a different Common Name" && exit 1
-fi
+  basename=$(echo "$commonname" | tr -d ' -.')
 
-if test -f "ca/$basename.csr"; then
-  echo "Certificate Signing Request file exists. Choose a different Common Name" && exit 1
-fi
+  file="ca/private/$basename.key"
 
-if test -f "ca/certs/$basename.pem"; then
-   echo "Certificate file exists. Choose a different Common Name" && exit 1
-fi
+  if test -f "$file"; then
+    echo "Private key file $file exists. Choose a different Common Name" && exit 1
+  fi
 
-dn="/C=${country}/O=${organization}/CN=${commonname}"
+  file="ca/$basename.csr"
+  if test -f "$file"; then
+    echo "Certificate Signing Request file $file exists. Choose a different Common Name" && exit 1
+  fi
+
+  file="ca/certs/$basename.pem"
+  if test -f "$file"; then
+     echo "Certificate file $file exists. Choose a different Common Name" && exit 1
+  fi
+done < $inputfile
+
+echo "Creating certificates from file $inputfile"
 
 . .includes
 
-# Generate and issue end entity key
-# -----------------------------------------
-export SAN=$san
-openssl genpkey ${genpkeyopt} -out ca/private/$basename.key
-openssl req ${reqopt} -key ca/private/$basename.key -out ca/$basename.csr -subj "${dn}"
-openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -in ca/$basename.csr -out ca/certs/$basename.pem -cert ca/certs/$issuingbasename.pem -keyfile ca/private/$issuingbasename.key
-openssl x509 -in ca/certs/$basename.pem -noout -text > ca/certs/$basename.txt
+unset outfiles
 
-echo "Successfully created private key and issued test certificate:"
-echo " keyfile: ca/private/$basename.key"
-echo " certificate file: ca/certs/$basename.pem"
+while IFS=, read country organization commonname san
+do
+
+  basename=$(echo "$commonname" | tr -d ' -.')
+  dn="/C=${country}/O=${organization}/CN=${commonname}"
+
+  # Generate and issue end entity key
+  # -----------------------------------------
+  export SAN=$san
+  openssl genpkey ${genpkeyopt} -out ca/private/$basename.key
+  openssl req ${reqopt} -key ca/private/$basename.key -out ca/$basename.csr -subj "${dn}"
+  openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -in ca/$basename.csr -out ca/certs/$basename.pem -cert ca/certs/$issuingbasename.pem -keyfile ca/private/$issuingbasename.key
+  openssl x509 -in ca/certs/$basename.pem -noout -text > ca/certs/$basename.txt
+
+  outfiles+=("$basename")
+
+done < $inputfile
+
+echo "Successfully created private keys and issued test certificates:"
+for basename in "${outfiles[@]}"
+do
+   echo " keyfile: ca/private/$basename.key"
+   echo " certificate file: ca/certs/$basename.pem"
+done
+
+

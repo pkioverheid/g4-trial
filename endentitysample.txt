@@ -1,0 +1,2 @@
+NL,Bedrijfsnaam,This is the Common Name 1,URI:example.com
+NL,Bedrijfsnaam,This is the Common Name 2,URI:test.com;URI:www.test.com

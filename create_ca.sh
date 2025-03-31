@@ -4,10 +4,9 @@ if test -e "ca"; then
   echo "Previous test CA already exists, if you'd like to start fresh, remove the ca directory and run this command again" && exit 1
 fi
 
-if [ "$#" -ne 1 ] || [ "$1" != "G4 Private TLS Generic Devices" ]; then
-    echo 'Please specify a CA domain to create a test CA for. Options are: "G4 Private TLS Generic Devices" ' >&2
-    exit 1
-fi
+echo "Create a test CA for the following domain:"
+. .prompt
+
 
 # Commands to create the CA structure and certificates:
 mkdir -p ca/{certs,crl,newcerts,private}
@@ -60,4 +59,4 @@ openssl x509 -in ca/certs/$issuingbasename.pem -noout -text > ca/certs/$issuingb
 openssl ca ${crlopt} -out ca/crl/$issuingbasename.crl
 openssl crl -in ca/crl/$issuingbasename.crl -noout -text > ca/crl/$issuingbasename.txt
 
-echo "Created test CA. Now create as many end entity certificates as needed using create_entity.sh"
+echo "Created test CA. Now create as many end entity certificates as needed using create_endentity.sh"

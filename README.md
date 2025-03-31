@@ -55,17 +55,16 @@ Only the following [G4 Domains](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.h
 
 # Usage
 
-First create the top three layers of the CA hierarchy for a [G4 Domain](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview). These are the self-signed Root CA, Domain Ca and Issuing (TSP) CA. For example: 
+First create the top three layers of the CA hierarchy for a [G4 Domain](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview). These are the self-signed Root CA, Domain Ca and Issuing (TSP) CA.  The script will prompt for the specific PKIoverheid G4 domain. 
 
 ```bash
-bash create_ca.sh "G4 Private TLS Generic Devices"
+bash create_ca.sh
 ```
 
-Then create as many end entity certificates as you require. Use the `-n` flag to specify a unique Common Name. Any Subject Alternate Names can be added using the `-s` flag:
+Create a new textfile to indicate which end entity certificates need to be created. This repository contains a sample file `endentitysample.txt` which you can copy and modify. The script will prompt for the specific PKIoverheid G4 domain, which must have been created earlier. Then run 
 
 ```bash
-bash create_endentity.sh -n "End Entity 1" -s 'URI:www.test.com'
-bash create_endentity.sh -n "End Entity 2" -s 'URI:www.test.com,URI:www.abc.nl'
+bash create_endentity.sh
 ```
 
 Start a minimal webserver to host the certificates (as specified in the `authorityInfoAccess` extension) and CRLs (as specified in the `crlDistributionPoints` extension) on the localhost.
