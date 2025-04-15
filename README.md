@@ -13,21 +13,25 @@
 
 This tool allows you to generate TRIAL (test) certificates for the PKIoverheid G4 hierarchies yourself. It generates a complete hierarchy of certificates resembling a chosen G4 hierarchy. For more information on these hierarchies, please refer to the [PKIoverheid CPS, Section 1.1](https://cps.pkioverheid.nl/pkioverheid-cps-unified-v5.4.html#id__11-overview). 
 
-Use the self-signed certificates to test your own and relaying party's readiness for the production PKIoverheid G4 certificates issued by PKIoverheid TSPs. 
+Use the self-signed certificates to test your own and relying party's readiness for the production PKIoverheid G4 certificates issued by PKIoverheid TSPs. 
 
-For the G3 certificate hierarchy some PKIoverheid TSPs offer TRIAL certificates, however the G4 hierarchies consists of many different types of certificates, increasing implementation costs, it was deemed most effective for users to be able to generate their own test certificates using a publicly available tool. 
+For the G3 certificate hierarchy some PKIoverheid TSPs offer TRIAL certificates. However, the G4 hierarchies consists of many different types of certificates, increasing implementation costs for TSPs. Therefore it was deemed most effective for users to be able to generate their own test certificates using a publicly available tool.
+
+# Target audience
+
+Software developers creating applications either using PKIoverheid certificates, or validating signatures created with PKIoverheid certificates, will be the primary audience of the PKIoverheid TRIAL certificates. However, organizations using *commercial off the shelf* (COTS) software in combination with PKIoverheid certificates or signatures created using them, may also wish to test their software stack with the PKIoverheid TRIAL certificates.
 
 # Major changes from G3 to G4
 
 There have been a number of changes from G3 to G4, which you need to be aware of. In depth technical changes are described in the [PKIoverheid CPS](https://cps.pkioverheid.nl) and [Certificate Policy/Programme of Requirements PKIoverheid](https://cp.pkioverheid.nl/), while the functional changes are:  
 
-- Instead of one certificate root, the PKIoverheid G4 consists of multiple Certificate Roots, depending on its trust type (Public, Mandated (eIDAS) and Private). Since Privately trusted roots may be used separately within a specific domain, several Privately trusted Certificate Roots are created. Relaying parties should only trust the appropriate Certificate Roots. Please see https://cert.pkioverheid.nl/ for details;
+- Instead of one certificate root, the PKIoverheid G4 consists of multiple Certificate Roots, depending on its trust type (Public, Mandated (eIDAS) and Private). Since Privately trusted roots may be used separately within a specific domain, several Privately trusted Certificate Roots are created. Relying parties should only trust the appropriate Certificate Roots. Please see [https://cert.pkioverheid.nl/](https://cert.pkioverheid.nl/) for details;
 - Many more certificate types are available for the G4 than G3, the certificate Common Names reflect this accordingly;
 - Intermediate CAs are based upon Subject Type (Natural Persons, Legal Entities or Devices), rather than a validation type, for example the G3's "Organisatie Persoon";
-- G3 certificates used a limited number of Policy OIDs, this has been expanded significantly for the G4. This allows the relaying party to pinpoint exactly which type of certificate and validation was performed; 
+- G3 certificates used a limited number of Policy OIDs, this has been expanded significantly for the G4. This allows the relying party to pinpoint exactly which type of certificate and validation was performed; 
 - G4 makes a distinction between Authenticity and Authentication certificates, while G3 only defined Authenticity for both use cases;
-- Previously G1 Private Services Server certificate (OID: 2.16.528.1.1003.1.2.8.6) could be used both for serverAuth and clientAuth (for example in mTLS usage cases). This has been changed in G4. A G4 Private Other Generic Legal Persons Organization Validated Authentication is used for clientAuth and G4 Private TLS Generic Devices Organization Validated Server for serverAuth. 
-- Signature algorithm RSASSA‐PKCS1‐v1_5 has been designated as legacy by the SOG-IS Crypto Evaluation Scheme and is replaced by RSASSA-PSS. This algorithm is used for certificates and CRLs. 
+- Previously G1 Private Services Server certificate (OID: 2.16.528.1.1003.1.2.8.6) could be used both for `serverAuth` and `clientAuth` (for example in mTLS usage cases). This has been changed in G4. A G4 Private Other Generic Legal Persons Organization Validated Authentication is used for `clientAuth` and G4 Private TLS Generic Devices Organization Validated Server for `serverAuth`. 
+- Signature algorithm `RSASSA‐PKCS1‐v1_5` has been designated as legacy by the SOG-IS Crypto Evaluation Scheme and is replaced by `RSASSA-PSS`. This algorithm is used for certificates and CRLs. 
 
 # Certificate profiles
 
@@ -35,11 +39,11 @@ The PKIoverheid G4 hierarchies offer many different types of certificates, each 
 
 Please be aware certificates generated by this tooling differ from their production counterparts in some aspects: 
 
-- There is no Certificate Policy and as such these certificates provide no trust or whatsoever
+- There is no Certificate Policy document and as such these certificates provide no trust whatsoever
 - **Serial Numbers** used in PKIoverheid certificates should be between 12 octets and 20 octets in length. openSSL [hardcodes this length to 159 bits](https://github.com/openssl/openssl/blob/da8de0e8dd3e09655cd17ef700359c63acdc9cd4/apps/include/apps.h#L324). Additionally, the serial number is not generated using a CSPRNG.
-- **Issuer** and **Subject** fields do not mention "Staat der Nederlanden", but "TRIAL PKIoverheid" instead. Nevertheless, relaying parties should not rely on Subject and Issuer for trust. 
+- **Issuer** and **Subject** fields do not mention "Staat der Nederlanden", but "TRIAL PKIoverheid" instead. Nevertheless, relying parties should not rely on Subject and Issuer for trust. 
 - **Validity** range for end entity certificates defaults to 365 days, which may be different from production certificates;
-- **crlDistributionPoints** and **caIssuers** point to `localhost` for TRIAL certificates by default, for the Production environment these point to http://crl.pkioverheid.nl and http://cert.pkioverheid.nl respectively. Filenames are generated based on the Common Name of the CA certificates.
+- **crlDistributionPoints** and **caIssuers** point to `localhost` for TRIAL certificates by default, for the Production environment these point to http://crl.pkioverheid.nl and http://cert.pkioverheid.nl respectively. File names are generated based on the Common Name of the CA certificates.
 - **Policy Identifiers** are defined by the [differentation model](https://oid.pkioverheid.nl/) and differ slightly between TRIAL and Production, for example: 
 
 | Certificate type                      | TRIAL                               | Production                          |
@@ -50,7 +54,7 @@ Please be aware certificates generated by this tooling differ from their product
 
 All G4 TRIAL certificates are self issued and must not be used for any production purpose and should only be used for testing purposes.
 
-Only the following [G4 Domains](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview) have been included:
+Currently, only the following [G4 Domains](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview) have been included:
 
 - G4 Private TLS Generic Devices
 
@@ -88,7 +92,11 @@ CRLURI=http://crl.example.com CERTURI=http://cert.example.com ./create_ca.sh
 
 # Support & Contributing
 
-These files are provided as-is and no warranty or support is given. However, you may create a Github issue to discuss issues and enhancements. 
+These files are provided as-is and no warranty or support is given. However, you may create a Github issue to discuss issues and enhancements.
+
+# Roadmap
+
+Based on user input, other G4 hierarchies will be added in future releases.
 
 # Disclaimer
 
