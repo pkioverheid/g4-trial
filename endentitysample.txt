@@ -1,2 +1,6 @@
+# Use this file to create multiple end entity certificates using create_endentity.sh
+# It requires a particular format and column ordering:
+#
+# Country code (two letters),Company Name,Common Name,Subject Alternate Names (SAN) prefixed with "URI:"
 NL,Bedrijfsnaam,This is the Common Name 1,URI:example.com
 NL,Bedrijfsnaam,This is the Common Name 2,URI:test.com;URI:www.test.com

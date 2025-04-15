@@ -58,7 +58,7 @@ do
   if test -f "$file"; then
      echo "Certificate file $file exists. Choose a different Common Name" && exit 1
   fi
-done < $inputfile
+done < <(grep -Ev '^#' "$inputfile")  
 
 echo "Creating certificates from file $inputfile"
 
@@ -81,9 +81,9 @@ do
   openssl x509 -in ca/certs/$basename.pem -noout -text > ca/certs/$basename.txt
 
   outfiles+=("$basename")
+done < <(grep -Ev '^#' "$inputfile")
 
-done < $inputfile
-
+echo
 echo "Successfully created private keys and issued test certificates:"
 for basename in "${outfiles[@]}"
 do
