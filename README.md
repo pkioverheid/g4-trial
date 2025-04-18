@@ -66,19 +66,19 @@ First create the top three layers of the CA hierarchy for a [G4 Domain](https://
 bash create_ca.sh
 ```
 
-Create a new text file to indicate which end entity certificates need to be created. This repository contains a sample file `endentitysample.txt` which you can copy and modify. The script will prompt for the specific PKIoverheid G4 domain, which must have been created earlier. Then run 
+Create a new text file to indicate which end entity certificates need to be created. This repository contains a sample file `endentitysample.txt` which you can copy and modify. The script will prompt for the specific PKIoverheid G4 domain, which must have been created earlier. If your file is named `filename.txt`, then run:  
 
 ```bash
-bash create_endentity.sh
+bash create_endentity.sh -f filename.txt
 ```
 
-Start a minimal webserver to host the certificates (as specified in the `authorityInfoAccess` extension) and CRLs (as specified in the `crlDistributionPoints` extension) on the localhost.
+The newly generated private keys are located in the `ca/private` directory and the certificates in the `ca/certs` directory. Use as appropriate.
+
+If you'd like to host the certificates (as specified in the `authorityInfoAccess` extension) and CRLs (as specified in the `crlDistributionPoints` extension) on the localhost, you can start a minimal webserver:
 
 ```bash
 bash start_server.sh
 ```
-
-Find the private keys in the `ca/private` directory and the certificates in the `ca/certs` directory. Use as appropriate. 
 
 If you intend to host the certificates and CRLs on another domain use environment variables to modify. For example:
 
