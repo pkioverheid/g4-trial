@@ -24,17 +24,19 @@ echo Using "$inputfile"
 echo "Specify the domain for which you want to create End Entity certificates:"
 . .prompt
 
+. .includes
+
 issuingbasenames=( "blank" "TRIALMyTSPG4PKIoPrivGTLSSYS2024" )
 issuingbasename=${issuingbasenames[$((catype))]}
 
 policies=( "blank" "policy_g4privatetls" )
 policy=${policies[$((catype))]}
 
-if ! test -f "ca/certs/$issuingbasename.pem"; then
+if ! test -f "$CERT_DIR/$issuingbasename.pem"; then
   echo "Issuing certificate does not exists. Create it first using create_ca.sh" && exit 1
 fi
 
-if ! test -f "ca/private/$issuingbasename.key"; then
+if ! test -f "$PRIVATE_DIR/$issuingbasename.key"; then
   echo "Issuing private key does not exist. Create it first using create_ca.sh" && exit 1
 fi
 
@@ -43,18 +45,18 @@ do
 
   basename=$(echo "$commonname" | tr -d ' -.')
 
-  file="ca/private/$basename.key"
+  file="$PRIVATE_DIR/$basename.key"
 
   if test -f "$file"; then
     echo "Private key file $file exists. Choose a different Common Name" && exit 1
   fi
 
-  file="ca/$basename.csr"
+  file="$CSR_DIR/$basename.csr"
   if test -f "$file"; then
     echo "Certificate Signing Request file $file exists. Choose a different Common Name" && exit 1
   fi
 
-  file="ca/certs/$basename.pem"
+  file="$CERT_DIR/$basename.pem"
   if test -f "$file"; then
      echo "Certificate file $file exists. Choose a different Common Name" && exit 1
   fi
@@ -75,10 +77,10 @@ do
   # Generate and issue end entity key
   # -----------------------------------------
   export SAN=$san
-  openssl genpkey ${genpkeyopt} -out ca/private/$basename.key
-  openssl req ${reqopt} -key ca/private/$basename.key -out ca/$basename.csr -subj "${dn}"
-  openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -policy ${policy} -in ca/$basename.csr -out ca/certs/$basename.pem -cert ca/certs/$issuingbasename.pem -keyfile ca/private/$issuingbasename.key
-  openssl x509 -in ca/certs/$basename.pem -noout -text > ca/certs/$basename.txt
+  openssl genpkey ${genpkeyopt} -out "$PRIVATE_DIR/$basename.key"
+  openssl req ${reqopt} -key "$PRIVATE_DIR/$basename.key" -out "$CSR_DIR/$basename.csr" -subj "${dn}"
+  openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -policy ${policy} -in "$CSR_DIR/$basename.csr" -out "$CERT_DIR/$basename.pem" -cert "$CERT_DIR/$issuingbasename.pem" -keyfile "$PRIVATE_DIR/$issuingbasename.key"
+  openssl x509 -in "$CERT_DIR/$basename.pem" -noout -text > "$CERT_DIR/$basename.txt"
 
   outfiles+=("$basename")
 done < <(grep -Ev '^#' "$inputfile")
@@ -87,8 +89,8 @@ echo
 echo "Successfully created private keys and issued test certificates:"
 for basename in "${outfiles[@]}"
 do
-   echo " keyfile: ca/private/$basename.key"
-   echo " certificate file: ca/certs/$basename.pem"
+   echo " keyfile: $PRIVATE_DIR/$basename.key"
+   echo " certificate file: $CERT_DIR/$basename.pem"
 done
 
 

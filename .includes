@@ -9,3 +9,8 @@ rootdays=368
 intermediatedays=367
 issuingdays=366
 eedays=365
+
+PRIVATE_DIR=ca/private
+CERT_DIR=ca/certs
+CRL_DIR=ca/crl
+CSR_DIR=ca/csr

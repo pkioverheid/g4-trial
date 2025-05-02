@@ -86,6 +86,22 @@ If you intend to host the certificates and CRLs on another domain use environmen
 CRLURI=http://crl.example.com CERTURI=http://cert.example.com ./create_ca.sh 
 ```
 
+# File list
+
+| Filename                                    | Description                                                             |
+|---------------------------------------------|-------------------------------------------------------------------------|
+| `create_ca.sh`                              | Script to create the top level CA private keys and certificates         |
+| `create_endentity.sh`                       | Script to create any number of end entity private keys and certificates |
+| `endentitysample.txt`                       | Sample input file for `create_endentity.sh`                             |
+| `start_server.sh`                           | A minimal webserver to host generated certificates and CRLs             |
+| `ca/private/*.key`                          | Generated private keys                                                  |        
+| `ca/csr/*.csr`                              | Generated Certificate Signing Requests (CSR)                            |
+| `ca/certs/*.pem`                            | Issued certificates                                                     |
+| `ca/certs/*.txt`                            | Textual representation of the issued certificates                       |
+| `ca/crl/*.crl`                              | CRLs for the generated CA certificates                                  |
+| `ca/crl/*.txt`                              | Textual representation of the CRLs created                              |
+| `ca/newcerts/*.pem`, `ca/index.*`, `serial` | Internal storage for openSSL, these files can be ignored                |
+
 # Requirements
 
 - Any openSSL version > 3.0 should suffice
