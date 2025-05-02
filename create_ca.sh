@@ -4,16 +4,17 @@ if test -e "ca"; then
   echo "Previous test CA already exists, if you'd like to start fresh, remove the ca directory and run this command again" && exit 1
 fi
 
-echo "Create a test CA for the following domain:"
-. .prompt
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
+echo "Create a test CA for the following domain:"
+. "$SCRIPT_DIR"/.prompt
+
+. "$SCRIPT_DIR"/.includes
 
 # Commands to create the CA structure and certificates:
 mkdir -p ca/{certs,crl,newcerts,private,csr}
 touch ca/index.txt
 echo 1000 > ca/serial
-
-. .includes
 
 # Generate Root CA key and certificate
 # -----------------------------------------
