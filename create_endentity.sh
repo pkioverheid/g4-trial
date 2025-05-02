@@ -21,8 +21,12 @@ fi
 
 echo Using "$inputfile"
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 echo "Specify the domain for which you want to create End Entity certificates:"
-. .prompt
+. "$SCRIPT_DIR"/.prompt
+
+. "$SCRIPT_DIR"/.includes
 
 . .includes
 
