@@ -25,10 +25,10 @@ rootbasename=$(openssl x509 -in "$CERT_DIR/cacert.pem" -noout -subject -nameopt 
 mv "$PRIVATE_DIR/ca.key" "$PRIVATE_DIR/$rootbasename.key"
 mv "$CERT_DIR/cacert.pem" "$CERT_DIR/$rootbasename.pem"
 
-openssl x509 -in "$CERT_DIR/$rootbasename.pem" -noout -text > $CERT_DIR/$rootbasename.txt
+openssl x509 -in "$CERT_DIR/$rootbasename.pem" -noout -text > "$CERT_DIR/${rootbasename}_text.txt"
 
 openssl ca ${crlopt} -days ${rootdays} -out "$CRL_DIR/$rootbasename.crl"
-openssl crl -in "$CRL_DIR/$rootbasename.crl" -noout -text > "$CRL_DIR/$rootbasename.txt"
+openssl crl -in "$CRL_DIR/$rootbasename.crl" -noout -text > "$CRL_DIR/${rootbasename}_text.txt"
 
 # Generate and issue Intermediate CA
 # -----------------------------------------
@@ -36,14 +36,14 @@ openssl genpkey ${genpkeyopt} -out "$PRIVATE_DIR/intermediate.key"
 openssl req ${reqopt} -section req_intermediate -key "$PRIVATE_DIR/intermediate.key" -out "$CSR_DIR/intermediate.csr"
 
 intermediatebasename=$(openssl req -in $CSR_DIR/intermediate.csr -noout -subject -nameopt multiline | grep commonName | cut -d '=' -f2 | tr -d ' -.')
-mv $PRIVATE_DIR/{intermediate,$intermediatebasename}.key
-mv $CSR_DIR/{intermediate,$intermediatebasename}.csr
+mv "$PRIVATE_DIR"/{intermediate,$intermediatebasename}.key
+mv "$CSR_DIR"/{intermediate,$intermediatebasename}.csr
 
 openssl ca ${caopt} -days ${intermediatedays} -extensions v3_intermediate_ca -in "$CSR_DIR/$intermediatebasename.csr" -out "$CERT_DIR/$intermediatebasename.pem"
-openssl x509 -in "$CERT_DIR/$intermediatebasename.pem" -noout -text > "$CERT_DIR/$intermediatebasename.txt"
+openssl x509 -in "$CERT_DIR/$intermediatebasename.pem" -noout -text > "$CERT_DIR/${intermediatebasename}_text.txt"
 
 openssl ca ${crlopt} -out "$CRL_DIR/$intermediatebasename.crl"
-openssl crl -in "$CRL_DIR/$intermediatebasename.crl" -noout -text > "$CRL_DIR/$intermediatebasename.txt"
+openssl crl -in "$CRL_DIR/$intermediatebasename.crl" -noout -text > "$CRL_DIR/${intermediatebasename}_text.txt"
 
 # Generate and issue Second-Level Intermediate CA
 # -----------------------------------------
@@ -55,9 +55,9 @@ mv $PRIVATE_DIR/{issuing,$issuingbasename}.key
 mv $CSR_DIR/{issuing,$issuingbasename}.csr
 
 openssl ca ${caopt} -days ${issuingdays} -extensions v3_issuing_ca -in "$CSR_DIR/$issuingbasename.csr" -out "$CERT_DIR/$issuingbasename.pem" -cert "$CERT_DIR/$intermediatebasename.pem" -keyfile "$PRIVATE_DIR/$intermediatebasename.key"
-openssl x509 -in "$CERT_DIR/$issuingbasename.pem" -noout -text > "$CERT_DIR/$issuingbasename.txt"
+openssl x509 -in "$CERT_DIR/$issuingbasename.pem" -noout -text > "$CERT_DIR/${issuingbasename}_text.txt"
 
 openssl ca ${crlopt} -out "$CRL_DIR/$issuingbasename.crl"
-openssl crl -in "$CRL_DIR/$issuingbasename.crl" -noout -text > "$CRL_DIR/$issuingbasename.txt"
+openssl crl -in "$CRL_DIR/$issuingbasename.crl" -noout -text > "$CRL_DIR/${issuingbasename}_text.txt"
 
 echo "Created test CA. Now create as many end entity certificates as needed using create_endentity.sh"
