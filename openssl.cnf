@@ -1,4 +1,5 @@
 [ default ]
+# Override these using environment variables
 CRLURI = http://localhost:8080/crl
 CERTURI = http://localhost:8080/certs
 SAN = URI:www.example.com
@@ -22,6 +23,7 @@ policy                  = policy_anything
 default_bits            = 4096
 default_md              = sha512
 string_mask             = utf8only
+# Comparison includes an unique subject.commonName, however some types omit this field
 unique_subject          = no
 
 [ policy_anything ]

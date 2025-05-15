@@ -36,6 +36,7 @@ issuingbasename=${issuingbasenames[$((catype))]}
 policies=( "blank" "policy_g4privatetls" )
 policy=${policies[$((catype))]}
 
+# Validate CA status and inputs
 if ! test -f "$CERT_DIR/$issuingbasename.pem"; then
   echo "Issuing certificate does not exists. Create it first using create_ca.sh" && exit 1
 fi
@@ -66,6 +67,7 @@ do
   fi
 done < <(grep -Ev '^#' "$inputfile")  
 
+# Parse the input file and create the end entity certificates
 echo "Creating certificates from file $inputfile"
 
 . .includes
@@ -84,7 +86,7 @@ do
   openssl genpkey ${genpkeyopt} -out "$PRIVATE_DIR/$basename.key"
   openssl req ${reqopt} -key "$PRIVATE_DIR/$basename.key" -out "$CSR_DIR/$basename.csr" -subj "${dn}"
   openssl ca ${caopt} -days ${eedays} -extensions v3_end_entity -policy ${policy} -in "$CSR_DIR/$basename.csr" -out "$CERT_DIR/$basename.pem" -cert "$CERT_DIR/$issuingbasename.pem" -keyfile "$PRIVATE_DIR/$issuingbasename.key"
-  openssl x509 -in "$CERT_DIR/$basename.pem" -noout -text > "$CERT_DIR/$basename.txt"
+  openssl x509 -in "$CERT_DIR/$basename.pem" -noout -text > "$CERT_DIR/${basename}_text.txt"
 
   outfiles+=("$basename")
 done < <(grep -Ev '^#' "$inputfile")
