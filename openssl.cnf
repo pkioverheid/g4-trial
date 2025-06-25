@@ -30,6 +30,7 @@ unique_subject          = no
 countryName             = supplied
 organizationName        = supplied
 commonName              = supplied
+organizationIdentifier  = optional
 
 # --------------------------------------------------
 # Root CA
@@ -84,6 +85,7 @@ prompt                  = no
 [ req_issuing_dn ]
 countryName             = NL
 organizationName        = My TSP - not for Production use
+organizationIdentifier  = NTRNL-99999990
 commonName              = TRIAL My TSP - G4 PKIo Priv G-TLS SYS - 2024
 
 [ v3_issuing_ca ]
