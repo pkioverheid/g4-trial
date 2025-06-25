@@ -97,6 +97,17 @@ extendedKeyUsage        = serverAuth,clientAuth
 crlDistributionPoints   = URI:$ENV::CRLURI/TRIALPKIoverheidRootCAG4IntmPrivGTLSSYS2024.crl
 subjectKeyIdentifier    = hash
 keyUsage                = critical, keyCertSign, cRLSign, digitalSignature
+qcStatements            = ASN1:SEQUENCE:qcStatements
+
+[qcStatements]
+qcStatement             = SEQUENCE:qcStatementWithInfo
+
+[qcStatementWithInfo]
+statementId             = OBJECT:1.3.6.1.5.5.7.11.2     # id-qcs-pkixQCSyntax-v2
+statementInfo           = SEQUENCE:semanticsInfo
+
+[semanticsInfo]
+semanticsIdentifier     = OBJECT:0.4.0.194121.1.2       # id-etsi-qcs-SemanticsId-Legal
 
 # --------------------------------------------------
 # End entity Certificate
