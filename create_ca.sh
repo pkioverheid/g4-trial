@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit as soon a command fails
+set -e
+
 if test -e "ca"; then
   echo "Previous test CA already exists, if you'd like to start fresh, remove the ca directory and run this command again" && exit 1
 fi

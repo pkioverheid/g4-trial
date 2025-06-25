@@ -1,8 +1,9 @@
 #!/bin/bash
 
-usage() { echo "Usage: $0 [-f input file]" 1>&2; exit 1; }
+# Exit as soon a command fails
+set -e
 
-inputfile=endentitycerts.txt
+usage() { echo "Usage: $0 -f <inputfile.csv>" 1>&2; exit 1; }
 
 while getopts "h?f:" opt; do
   case "$opt" in
@@ -15,8 +16,12 @@ while getopts "h?f:" opt; do
   esac
 done
 
+if [ -z "$inputfile" ]; then
+  usage
+fi
+
 if ! test -f "$inputfile"; then
-  echo "End entity input file $inputfile not found" && usage && exit 1
+  echo "Error: end entity input file \"$inputfile\" not found" && usage
 fi
 
 echo Using "$inputfile"
