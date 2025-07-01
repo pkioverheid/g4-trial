@@ -1,9 +1,0 @@
-
-echo " [1] G4 Private TLS Generic Devices"
-echo
-read -p "Enter the domain [1]: " catype
-
-if [ "$catype" != "1" ]; then
-    echo 'Please specify a CA domain' >&2
-    exit 1
-fi

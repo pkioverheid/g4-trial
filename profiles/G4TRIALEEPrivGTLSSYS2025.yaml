@@ -1,0 +1,123 @@
+---
+exponent: 65537 (0x10001)
+extensions:
+  authorityInfoAccess:
+    caIssuers: '%s/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer'
+    critical: false
+    oid: 1.3.6.1.5.5.7.1.1
+  authorityKeyIdentifier:
+    critical: false
+    oid: 2.5.29.35
+    value: match_issuer
+  basicConstraints:
+    cA: false
+    critical: true
+    oid: 2.5.29.19
+  cRLDistributionPoints:
+    critical: false
+    oid: 2.5.29.31
+    value:
+    - '%s/TRIALMyTSPG4PKIoPrivGTLSSYS2025.crl'
+  certificatePolicies:
+    critical: false
+    oid: 2.5.29.32
+    value:
+    - name: ncp
+      oid: 0.4.0.2042.1.1
+    - name: id-pkio-cp-g4d-gen10PrvTLS-sysOrg-tls
+      oid: 2.16.528.1.1003.1.2.41.15.35.11
+  extendedKeyUsage:
+    critical: false
+    oid: 2.5.29.37
+    value:
+    - name: id-kp-serverAuth
+      oid: 1.3.6.1.5.5.7.3.1
+    - name: id-kp-clientAuth
+      oid: 1.3.6.1.5.5.7.3.2
+  keyUsage:
+    critical: true
+    oid: 2.5.29.15
+    value:
+    - digitalSignature
+    - keyEncipherment
+  qcStatements:
+    critical: false
+    oid: 1.3.6.1.5.5.7.1.3
+    value:
+      name: id-qcs-pkixQCSyntax-v2
+      oid: 1.3.6.1.5.5.7.11.2
+      value: 0.4.0.194121.1.2 (id-etsi-qcs-SemanticsId-Legal)
+  subjectAltNames:
+    critical: false
+    oid: 2.5.29.17
+    value:
+    - example.com
+    - www.example.com
+  subjectKeyIdentifier:
+    critical: false
+    oid: 2.5.29.14
+    value: RFC5280 - Method 1
+hashAlgorithm: sha512
+issuer:
+  C: NL
+  CN: TRIAL My TSP - G4 PKIo Priv G-TLS SYS - 2025
+  O: My TSP - not for Production use
+  organizationIdentifier: NTRNL-99999990
+maskAlgorithm: Mgf1 with sha512
+publicKeyAlgorithm: rsaEncryption
+publicKeyLength: 4096 bit
+saltLength: '0x40'
+serialNumber: Randomly generated (20 octets) -- Unique Positive Integer
+signatureAlgorithm: rsassaPss
+trailerField: 0x01 / 0xBC (default)
+validations:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  additionalProperties: false
+  properties:
+    profile:
+      type: string
+    subject:
+      additionalProperties: false
+      properties:
+        C:
+          const: NL
+          type: string
+        CN:
+          maxLength: 64
+          type: string
+        O:
+          maxLength: 64
+          minLength: 2
+          type: string
+        organizationIdentifier:
+          pattern: NTRNL-[0-9]{8}
+          type: string
+        serialNumber:
+          maxLength: 64
+          type: string
+      required:
+      - C
+      - CN
+      - O
+      - organizationIdentifier
+      type: object
+    subjectAltNames:
+      items:
+        format: hostname
+        not:
+          pattern: \.onion$
+        pattern: ^(?!\*\.)[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$
+        type: string
+      maxItems: 100
+      minItems: 1
+      type: array
+  required:
+  - profile
+  - subject
+  - subjectAltNames
+  title: End Entity TLS certificates require SANs + Organization Validation
+  type: object
+validity:
+  notAfter: 365d
+  notBefore: now
+version: 3 (0x2)

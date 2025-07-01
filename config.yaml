@@ -1,0 +1,3 @@
+caIssuersBaseUrl: http://localhost:8080/certs
+cRLDistributionPointsBaseUrl: http://localhost:8080/crl
+crlRenewalHours: 48
