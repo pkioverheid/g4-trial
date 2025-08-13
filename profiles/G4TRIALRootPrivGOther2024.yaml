@@ -1,0 +1,66 @@
+---
+exponent: 65537 (0x10001)
+extensions:
+  authorityKeyIdentifier:
+    critical: false
+    oid: 2.5.29.35
+    value: match_issuer
+  basicConstraints:
+    cA: true
+    critical: true
+    oid: 2.5.29.19
+  keyUsage:
+    critical: true
+    oid: 2.5.29.15
+    value:
+    - digitalSignature
+    - keyCertSign
+    - cRLSign
+  subjectKeyIdentifier:
+    critical: false
+    oid: 2.5.29.14
+    value: RFC5280 - Method 1
+hashAlgorithm: sha512
+issuer:
+  C: NL
+  CN: TRIAL PKIoverheid - G4 Root Priv G-Other - 2024
+  O: TRIAL PKIoverheid - not for Production use
+maskAlgorithm: Mgf1 with sha512
+publicKeyAlgorithm: rsaEncryption
+publicKeyLength: 4096 bit
+saltLength: '0x40'
+serialNumber: Randomly generated (20 octets) -- Unique Positive Integer
+signatureAlgorithm: rsassaPss
+trailerField: 0x01 / 0xBC (default)
+validations:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  additionalProperties: false
+  properties:
+    profile:
+      type: string
+    subject:
+      additionalProperties: false
+      properties:
+        C:
+          const: NL
+          type: string
+        CN:
+          pattern: TRIAL PKIoverheid - G[0-9] Root (EUTL|Publ|Priv) (G-|S-|R-)(Sigs|SMIME|TLS|Other|CIBG|MinDef|ILT|OCSP)
+            (NP |LP |SYS )?(- 20[0-9][0-9])(-[0-9]+)?$
+          type: string
+        O:
+          const: TRIAL PKIoverheid - not for Production use
+          type: string
+      required:
+      - C
+      - CN
+      - O
+      type: object
+  required:
+  - profile
+  - subject
+  type: object
+validity:
+  notAfter: 365d
+  notBefore: now
+version: 3 (0x2)

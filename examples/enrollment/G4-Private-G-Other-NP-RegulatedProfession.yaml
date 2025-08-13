@@ -1,0 +1,9 @@
+---
+profile: profiles/G4TRIALEEPrivGOtherNP2025RegulatedProfession.yaml
+subject:
+  C: NL
+  CN: Pietje Puk
+  GN: Pietje
+  SN: Puk
+  serialNumber: abcdef1                   # Any (internal) unique serial number to identify this entity
+  title: Rangeerder                       # Name from the EU Regulated Profession Database

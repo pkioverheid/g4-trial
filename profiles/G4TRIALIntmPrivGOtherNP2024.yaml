@@ -1,0 +1,123 @@
+---
+exponent: 65537 (0x10001)
+extensions:
+  authorityInfoAccess:
+    caIssuers: '%s/TRIALPKIoverheidG4RootPrivGOther2024.cer'
+    critical: false
+    oid: 1.3.6.1.5.5.7.1.1
+  authorityKeyIdentifier:
+    critical: false
+    oid: 2.5.29.35
+    value: match_issuer
+  basicConstraints:
+    cA: true
+    critical: true
+    oid: 2.5.29.19
+  cRLDistributionPoints:
+    critical: false
+    oid: 2.5.29.31
+    value:
+    - '%s/TRIALPKIoverheidG4RootPrivGOther2024.crl'
+  certificatePolicies:
+    critical: false
+    oid: 2.5.29.32
+    value:
+    - name: ncp
+      oid: 0.4.0.2042.1.1
+    - name: ncpplus
+      oid: 0.4.0.2042.1.2
+    - name: id-pkio-cp-g4d-gen10PrvOth-npInd-authy
+      oid: 2.16.528.1.1003.1.2.41.16.11.4
+    - name: id-pkio-cp-g4d-gen10PrvOth-npInd-conf
+      oid: 2.16.528.1.1003.1.2.41.16.11.7
+    - name: id-pkio-cp-g4d-gen10PrvOth-npInd-authon
+      oid: 2.16.528.1.1003.1.2.41.16.11.8
+    - name: id-pkio-cp-g4d-gen10PrvOth-npRegP-authy
+      oid: 2.16.528.1.1003.1.2.41.16.12.4
+    - name: id-pkio-cp-g4d-gen10PrvOth-npRegP-conf
+      oid: 2.16.528.1.1003.1.2.41.16.12.7
+    - name: id-pkio-cp-g4d-gen10PrvOth-npRegP-authon
+      oid: 2.16.528.1.1003.1.2.41.16.12.8
+    - name: id-pkio-cp-g4d-gen10PrvOth-npSpon-authy
+      oid: 2.16.528.1.1003.1.2.41.16.13.4
+    - name: id-pkio-cp-g4d-gen10PrvOth-npSpon-conf
+      oid: 2.16.528.1.1003.1.2.41.16.13.7
+    - name: id-pkio-cp-g4d-gen10PrvOth-npSpon-authon
+      oid: 2.16.528.1.1003.1.2.41.16.13.8
+    - name: id-pkio-cp-g4d-gen10PrvOth-npRPSp-authy
+      oid: 2.16.528.1.1003.1.2.41.16.14.4
+    - name: id-pkio-cp-g4d-gen10PrvOth-npRPSp-conf
+      oid: 2.16.528.1.1003.1.2.41.16.14.7
+    - name: id-pkio-cp-g4d-gen10PrvOth-npRPSp-authon
+      oid: 2.16.528.1.1003.1.2.41.16.14.8
+    - name: id-pkio-cp-g4d-gen10PrvOth-npInt-ocsp
+      oid: 2.16.528.1.1003.1.2.41.16.18.10
+    - name: id-pkio-cp-g4d-gen10PrvOth-npTSP-ocsp
+      oid: 2.16.528.1.1003.1.2.41.16.19.10
+  extendedKeyUsage:
+    critical: false
+    oid: 2.5.29.37
+    value:
+    - name: szOID_EFS_CRYPTO
+      oid: 1.3.6.1.4.1.311.10.3.4
+    - name: szOID_KP_DOCUMENT_SIGNING
+      oid: 1.3.6.1.4.1.311.10.3.12
+    - name: id-kp-clientAuth
+      oid: 1.3.6.1.5.5.7.3.2
+    - name: id-kp-documentSigning
+      oid: 1.3.6.1.5.5.7.3.36
+  keyUsage:
+    critical: true
+    oid: 2.5.29.15
+    value:
+    - digitalSignature
+    - keyCertSign
+    - cRLSign
+  subjectKeyIdentifier:
+    critical: false
+    oid: 2.5.29.14
+    value: RFC5280 - Method 1
+hashAlgorithm: sha512
+issuer:
+  C: NL
+  CN: TRIAL PKIoverheid - G4 Root Priv G-Other - 2024
+  O: TRIAL PKIoverheid - not for Production use
+maskAlgorithm: Mgf1 with sha512
+publicKeyAlgorithm: rsaEncryption
+publicKeyLength: 4096 bit
+saltLength: '0x40'
+serialNumber: Randomly generated (20 octets) -- Unique Positive Integer
+signatureAlgorithm: rsassaPss
+trailerField: 0x01 / 0xBC (default)
+validations:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  additionalProperties: false
+  properties:
+    profile:
+      type: string
+    subject:
+      additionalProperties: false
+      properties:
+        C:
+          const: NL
+          type: string
+        CN:
+          pattern: TRIAL PKIoverheid - G[0-9] Intm (EUTL|Publ|Priv) (G-|S-|R-)(Sigs|SMIME|TLS|Other|CIBG|MinDef|ILT|OCSP)
+            (NP |LP |SYS )?(- 20[0-9][0-9])(-[0-9]+)?$
+          type: string
+        O:
+          const: TRIAL PKIoverheid - not for Production use
+          type: string
+      required:
+      - C
+      - CN
+      - O
+      type: object
+  required:
+  - profile
+  - subject
+  type: object
+validity:
+  notAfter: 365d
+  notBefore: now
+version: 3 (0x2)

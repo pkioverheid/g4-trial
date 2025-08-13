@@ -22,3 +22,51 @@ domains:
 
       - label: Organization Validated including an OIN
         profile: profiles/G4TRIALEEPrivGTLSSYS2025.yaml
+
+  G4 Private Other Generic NP:
+    hierarchy:
+      - profile: profiles/G4TRIALRootPrivGOther2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4RootPrivGOther2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4RootPrivGOther2024.yaml
+
+      - profile: profiles/G4TRIALIntmPrivGOtherNP2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4IntmPrivGOtherNP2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4IntmPrivGOtherNP2024.yaml
+
+      - profile: profiles/G4TRIALPKIoPrivGOtherNP2025.yaml
+        enrollment: enrollment/TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
+        revocations: revocations/TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
+
+    endentity:
+      - label: Individual Validated
+        profile: profiles/G4TRIALEEPrivGOtherNP2025IndividualValidated.yaml
+
+      - label: Regulated Profession
+        profile: profiles/G4TRIALEEPrivGOtherNP2025RegulatedProfession.yaml
+
+      - label: Sponsor Validated
+        profile: profiles/G4TRIALEEPrivGOtherNP2025SponsorValidated.yaml
+
+      - label: Regulated Profession with Sponsor Validation
+        profile: profiles/G4TRIALEEPrivGOtherNP2025RegulatedProfessionwithSponsorValidation.yaml
+
+  G4 Private Other Generic LP:
+    hierarchy:
+      - profile: profiles/G4TRIALRootPrivGOther2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4RootPrivGOther2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4RootPrivGOther2024.yaml
+
+      - profile: profiles/G4TRIALIntmPrivGOtherLP2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4IntmPrivGOtherLP2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4IntmPrivGOtherLP2024.yaml
+
+      - profile: profiles/G4TRIALPKIoPrivGOtherLP2025.yaml
+        enrollment: enrollment/TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml
+        revocations: revocations/TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml
+
+    endentity:
+      - label: Organization identified
+        profile: profiles/G4TRIALEEPrivGOtherLP2025.yaml
+
+      - label: Organization identified including an OIN
+        profile: profiles/G4TRIALEEPrivGOtherLP2025.yaml

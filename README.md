@@ -69,6 +69,8 @@ All G4 TRIAL certificates are self issued and must not be used for any productio
 Currently, only the following [G4 Domains](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview) have been included:
 
 - G4 Private TLS Generic Devices
+- G4 Private Other Generic Natural Persons
+- G4 Private Other Generic Legal Persons
 
 If you require any other G4 Domain, please open a Github issue in this repository. 
 
