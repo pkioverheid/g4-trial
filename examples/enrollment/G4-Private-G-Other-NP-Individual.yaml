@@ -1,0 +1,8 @@
+---
+profile: profiles/G4TRIALEEPrivGOtherNP2025IndividualValidated.yaml
+subject:
+  C: NL
+  CN: Pietje Puk
+  GN: Pietje
+  SN: Puk
+  serialNumber: abcdef1                   # Any (internal) unique serial number to identify this entity

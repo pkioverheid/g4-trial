@@ -1,0 +1,10 @@
+---
+profile: profiles/G4TRIALEEPrivGOtherNP2025SponsorValidated.yaml
+subject:
+  C: NL
+  CN: Pietje Puk
+  GN: Pietje
+  O: Bedrijfsnaam B.V.
+  SN: Puk
+  organizationIdentifier: NTRNL-99999991  # KvK registration number
+  serialNumber: abcdef1                   # Any (internal) unique serial number to identify this entity

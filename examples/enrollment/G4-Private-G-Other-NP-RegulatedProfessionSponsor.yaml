@@ -1,0 +1,11 @@
+---
+profile: profiles/G4TRIALEEPrivGOtherNP2025RegulatedProfessionwithSponsorValidation.yaml
+subject:
+  C: NL
+  CN: Pietje Puk
+  GN: Pietje
+  O: Bedrijfsnaam B.V.
+  SN: Puk
+  organizationIdentifier: NTRNL-99999991  # KvK registration number
+  serialNumber: abcdef1                   # Any (internal) unique serial number to identify this entity
+  title: Rangeerder                       # Name from the EU Regulated Profession Database
