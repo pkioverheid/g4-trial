@@ -1,0 +1,5 @@
+---
+revocations:
+  - serialNumber: '78:74:17:c2:a6:23:5f:55:57:ac:38:5e:e3:4d:6e:82:b4:fd:07:eb'
+    reason: superseded
+    date: "2025-08-08 00:00:00"

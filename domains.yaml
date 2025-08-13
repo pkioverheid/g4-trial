@@ -1,0 +1,24 @@
+---
+
+domains:
+
+  G4 Private TLS:
+    hierarchy:
+      - profile: profiles/G4TRIALRootPrivGTLS2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml
+
+      - profile: profiles/G4TRIALIntmPrivGTLSSYS2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml
+
+      - profile: profiles/G4TRIALPKIoPrivGTLSSYS2024.yaml
+        enrollment: enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
+        revocations: revocations/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
+
+    endentity:
+      - label: Organization Validated
+        profile: profiles/G4TRIALEEPrivGTLSSYS2025.yaml
+
+      - label: Organization Validated including an OIN
+        profile: profiles/G4TRIALEEPrivGTLSSYS2025.yaml

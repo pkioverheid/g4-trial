@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "caIssuersBaseUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Base URL for CA Issuers, e.g., where certificates are published."
+    },
+    "cRLDistributionPointsBaseUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Base URL for CRL distribution points, e.g., where CRLs are available."
+    },
+    "crlRenewalHours": {
+      "type": "integer",
+      "description": "Number of hours the CRL should be valid for, i.e. the difference between thisUpdate and nextUpdate fields"
+    }
+  },
+  "required": ["caIssuersBaseUrl", "cRLDistributionPointsBaseUrl", "crlRenewalHours"],
+  "additionalProperties": false
+}
