@@ -134,17 +134,50 @@ The filenames of the newly generated private and public keys will match the file
 
 When CA certificates are created, an associated Certificate Revocation List (CRL) is automatically created. By default no certificates are revoked. However, to test revocation checking, you may want to generate some certificates and revoke them. 
 
+Each CA certificate will have a corresponding file in the `revocations` directory. For example:
+
+```yaml
+---
+revocations:
+  - serialNumber: '78:74:17:c2:a6:23:5f:55:57:ac:38:5e:e3:4d:6e:82:b4:fd:07:eb'
+    reason: superseded
+    date: "2025-08-08 00:00:00"
+  - serialNumber: '75:13:8e:39:29:93:c5:23:62:9f:bb:4c:24:dd:28:6b:41:11:52:c7'
+    reason: superseded
+    date: "2025-08-10 10:02:00"
+```
+
+Only three values are needed per revocation:
+
+* `serialNumber` of the certificate must indicated in hexadecimal format separated by colons (openSSL format);
+* `reason` for revocation must be one listed in [Programme of Requirements Section 7.2 CRL profile](https://cp.pkioverheid.nl/pkioverheid-por-v5.2.html#id__7222-tbscertlistrevokedcertificatescrlentryextensionsextensions); 
+* `date` is the date of revocation. For production uses this date is the actual date of revocation, however for the G4 TRIAL this date is unbounded. 
+
+After modification of the revocations file, create a new CRL by executing:
+
+```shell
+python generate-crl.py <revocation file>
+```
+
+Please do not rename the created CRL file(s) as they are referenced by other certificates (see below) and are used to increment the `cRLNumber` included within each CRL. Publish the CRL file accordingly (see below). 
+
+The Programme of Requirements dictates that CRLs must be renewed (regenerated) at least each 48 hours, and this has been set as default. When publishing the CRL, you may wish to setup a cronjob that automatically recreates the CRL. For testing purposes you may change this setting in `config.yaml` (see below).
+
+## Certificate Status Service
+
 If you'd like to host the CA certificates (as specified in the certificate's `authorityInfoAccess` extension) and CRLs (as specified in the `crlDistributionPoints` extension) on your local machine, you can start a minimal webserver:
 
 ```bash
 bash start-server.sh
 ```
 
+If desired, these files can be hosted using other webservers on other domains (see below). 
+
 # Customizing
 
 ## Issuing certificates and CRL locations
 
-If you intend to host the certificates and CRLs on another domain modify the `config.yaml` file accordingly. You must recreate all certificates for these values to be used. An example configuration could be: 
+If you intend to host the certificates and CRLs on another domain modify the `config.yaml` file by modifing the `caIssuersBaseUrl` and `cRLDistributionPointsBaseUrl` parameters. You must recreate all certificates for these values to be used. An example configuration could be: 
 
 ```yaml
 caIssuersBaseUrl: http://cert.mydomain.com
@@ -152,13 +185,7 @@ cRLDistributionPointsBaseUrl: http://crl.mydomain.com
 crlRenewalHours: 48
 ```
 
-In the `revocations` directory you'll find a YAML file for each CA certificate created. Please refer to the directory `examples/revocations` for example files. When you've updated this file, regenerate the CRL:
-
-```bash
-python generate-crl.py <revocation file>
-```
-
-The Programme of Requirements dictates that CRLs must be renewed (regenerated) at least each 48 hours, and this has been set as default. When publishing the CRL, you may wish to setup a cronjob that automatically recreates the CRL. For testing purposes you may change this setting in `config.yaml`. 
+The parameter `crlRenewalHours` indicates the lifespan of a CRL, i.e. the difference between `thisUpdate` and `nextUpdate`. The default is 48 hours, but can be modified for testing purposes. 
 
 # File list
 
