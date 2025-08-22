@@ -84,6 +84,7 @@ validations:
           type: string
         CN:
           maxLength: 64
+          minLength: 2
           type: string
         O:
           maxLength: 64
@@ -94,6 +95,7 @@ validations:
           type: string
         serialNumber:
           maxLength: 64
+          minLength: 2
           type: string
       required:
       - C
