@@ -47,12 +47,6 @@ extensions:
       name: id-qcs-pkixQCSyntax-v2
       oid: 1.3.6.1.5.5.7.11.2
       value: 0.4.0.194121.1.2 (id-etsi-qcs-SemanticsId-Legal)
-  subjectAltNames:
-    critical: false
-    oid: 2.5.29.17
-    value:
-    - example.com
-    - www.example.com
   subjectKeyIdentifier:
     critical: false
     oid: 2.5.29.14
