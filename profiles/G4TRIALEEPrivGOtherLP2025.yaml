@@ -26,20 +26,14 @@ extensions:
       oid: 0.4.0.2042.1.1
     - name: ncpplus
       oid: 0.4.0.2042.1.2
-    - name: id-pkio-cp-g4d-gen10PrvOth-lpOrg-authy
-      oid: 2.16.528.1.1003.1.2.41.16.25.4
     - name: id-pkio-cp-g4d-gen10PrvOth-lpOrg-authon
       oid: 2.16.528.1.1003.1.2.41.16.25.8
   extendedKeyUsage:
     critical: false
     oid: 2.5.29.37
     value:
-    - name: szOID_KP_DOCUMENT_SIGNING
-      oid: 1.3.6.1.4.1.311.10.3.12
     - name: id-kp-clientAuth
       oid: 1.3.6.1.5.5.7.3.2
-    - name: id-kp-documentSigning
-      oid: 1.3.6.1.5.5.7.3.36
   keyUsage:
     critical: true
     oid: 2.5.29.15
@@ -91,10 +85,12 @@ validations:
           type: string
         organizationIdentifier:
           maxLength: 64
+          minLength: 2
           pattern: NTRNL-[0-9]{8}
           type: string
         serialNumber:
           maxLength: 64
+          minLength: 2
           type: string
       required:
       - C

@@ -158,7 +158,7 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
         dns_names = [x509.DNSName(name) for name in enrollment['subjectAltNames']]
         builder = builder.add_extension(
             x509.SubjectAlternativeName(dns_names),
-            critical=ext['subjectAltNames'].get('critical', False)
+            critical=ext.get('subjectAltNames', {}).get('critical', False)
         )
 
     return builder
