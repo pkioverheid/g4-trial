@@ -13,7 +13,7 @@ from jschon import create_catalog, JSON, JSONSchema
 
 from .dn import as_name, generate_basename
 from .keypair import KeyPair
-from .util import load_yaml, force_int, output_errors, keys_exist
+from .util import force_int, output_errors, keys_exist
 
 
 def get_hash_algo(name):

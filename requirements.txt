@@ -1,0 +1,4 @@
+pyyaml
+cryptography>=42.0.0
+jschon
+asn1crypto
