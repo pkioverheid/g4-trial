@@ -1,7 +1,7 @@
 from lib import cert
 from lib import crl
-from lib.util import load_yaml, choose, load_config
 from lib.domains import verify
+from lib.util import load_yaml, choose, load_config
 
 
 def main():

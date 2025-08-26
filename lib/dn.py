@@ -1,7 +1,6 @@
 import hashlib
-from collections import OrderedDict
 import re
-import yaml
+
 from cryptography.x509 import Name
 from cryptography.x509.oid import NameOID
 
