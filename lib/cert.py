@@ -1,27 +1,22 @@
+import logging
 import os
-import pathlib
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from asn1crypto.core import Sequence, ObjectIdentifier as Asn1OID, SequenceOf
 from cryptography import x509
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
-from jschon import create_catalog, JSON, JSONSchema
 
 from .dn import as_name, generate_basename
-from .keypair import KeyPair
-from .util import force_int, output_errors, keys_exist
+from .keypair import KeyPair, get_hash_algo
+from .ra import validate
+from .util import force_int, keys_exist, load_yaml
 
-
-def get_hash_algo(name):
-    return {
-        'sha512': hashes.SHA512(),
-        'sha384': hashes.SHA384(),
-        'sha256': hashes.SHA256(),
-    }[name.lower()]
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def build_qc_statements_extension(qc_data):
@@ -163,19 +158,29 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
     return builder
 
 
-def sign(profile, enrollment, subject_keys, issuer_keys):
 def sign(profile, enrollment, issuer, subject_keys, issuer_keys, config):
+    logger.info(f"Signing certificate {enrollment['subject']} using {issuer['subject']['CN']}")
+
+    # Replace placeholders with actual values
+    if keys_exist(profile, ['extensions', 'authorityInfoAccess', 'caIssuers']):
+        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess'][
+                                                                        'caIssuers'] % config['caIssuersBaseUrl']
+    if keys_exist(profile, ['extensions', 'cRLDistributionPoints', 'value']):
+        profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for
+                                                                   value in
+                                                                   profile['extensions']['cRLDistributionPoints'][
+                                                                       'value']]
 
     # Validity
     if profile['validity']['notBefore'] == 'now':
-        not_before = datetime.now()
+        not_before = datetime.now(UTC)
     else:  # assume date time format
         not_before = datetime.fromisoformat(profile['validity']['notBefore'])
 
     match = re.match("^([0-9]+)d$", profile['validity']['notAfter'])
     if match:
         # last second is inclusive, therefore substract one second
-        not_after = not_before + timedelta(days=int(match.group(1))) - timedelta(seconds=1)
+        not_after = not_before + timedelta(days=int(match.group(1)), seconds=-1)
     else:  # assume date time format
         not_after = datetime.fromisoformat(profile['validity']['not_after'])
 
@@ -212,17 +217,8 @@ def sign(profile, enrollment, issuer, subject_keys, issuer_keys, config):
     return cert
 
 
-def process(profile, enrollment, enrollmentfile, config):
-
-    # Validate CSR against the certificate profile
-    create_catalog("2020-12")
-    schema = JSONSchema(profile['validations'])
-    result = schema.evaluate(JSON(enrollment))
-    if not result.valid:
-        print(f"Enrollment {enrollmentfile} is invalid for specified certificate profile ❌")
-        output_errors(result.output("detailed")["errors"])
-        exit(1)
 def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict):
+    validate(enrollment, profile)
 
     # Find issuer keypair by its DN from its enrollment
     issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
