@@ -59,7 +59,6 @@ def build_qc_statements_extension(qc_data):
 
 
 def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
-
     if 'basicConstraints' in ext:
         builder = builder.add_extension(
             x509.BasicConstraints(
@@ -165,6 +164,7 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
 
 
 def sign(profile, enrollment, subject_keys, issuer_keys):
+def sign(profile, enrollment, issuer, subject_keys, issuer_keys, config):
 
     # Validity
     if profile['validity']['notBefore'] == 'now':
@@ -188,7 +188,7 @@ def sign(profile, enrollment, subject_keys, issuer_keys):
     # Certificate Builder
     builder = x509.CertificateBuilder()
     builder = builder.subject_name(as_name(enrollment['subject']))
-    builder = builder.issuer_name(as_name(profile['issuer']))
+    builder = builder.issuer_name(as_name(issuer['subject']))
     builder = builder.public_key(subject_keys.public_key)
     builder = builder.serial_number(serial_number)
     builder = builder.not_valid_before(not_before)
@@ -222,51 +222,35 @@ def process(profile, enrollment, enrollmentfile, config):
         print(f"Enrollment {enrollmentfile} is invalid for specified certificate profile ❌")
         output_errors(result.output("detailed")["errors"])
         exit(1)
+def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict):
 
-    selfsigned = profile['issuer'] == enrollment['subject']
+    # Find issuer keypair by its DN from its enrollment
+    issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
+    issuer_keys = KeyPair(generate_basename(issuer['subject']))
 
-    # Find issuer keypair by name
-    issuer_name = generate_basename(profile['issuer'])
-    issuer_keys = KeyPair(issuer_name)
-
-    if not selfsigned and not os.path.exists(issuer_keys.certificatefile):
-        # If keys for a self-signed do not exist, we'll create them later
-        print(f"Cannot find keys of {issuer_keys} for signing operation, please generate it first")
-        return
-
-    try:
-        issuer_keys.load()
-    except FileNotFoundError:
-        issuer_keys.generate_private_key(profile)
-
+    selfsigned = issuer['subject'] == enrollment['subject']
     if selfsigned:
-        subject_keys = issuer_keys
-
-        if os.path.exists(subject_keys.certificatefile):
-            print(f"Certificate {subject_keys.basename} already exists, skipping")
+        logger.debug("Issuing a self signed certificate")
+        try:
+            issuer_keys.load()
+            print(f"KeyPair for {issuer_keys} already exists, skipping")
             return
-
+        except FileNotFoundError:
+            issuer_keys.generate_private_key(profile)
+            subject_keys = issuer_keys
     else:
-        # Find cert private key - use the same name as the input YAML file
-        basename = pathlib.Path(enrollmentfile).stem
-        subject_keys = KeyPair(basename)
-
-        if os.path.exists(subject_keys.certificatefile):
-            print(f"Certificate {basename} already exists, skipping")
-            return
+        try:
+            issuer_keys.load()
+        except FileNotFoundError as e:
+            raise ValueError(
+                f"Cannot find keys of {issuer_keys} for signing operation, please generate it first") from e
 
         try:
             subject_keys.load()
         except FileNotFoundError:
             subject_keys.generate_private_key(profile)
 
-    # Some proposed certificate values contain placeholders, replace them here to keep the sign funcion clean
-    if keys_exist(profile, ['extensions', 'authorityInfoAccess', 'caIssuers']):
-        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess']['caIssuers'] % config['caIssuersBaseUrl']
-    if keys_exist(profile, ['extensions', 'cRLDistributionPoints', 'value']):
-        profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for value in profile['extensions']['cRLDistributionPoints']['value']]
-
-    cert = sign(profile, enrollment, subject_keys, issuer_keys)
+    cert = sign(profile, enrollment, issuer, subject_keys, issuer_keys, config)
 
     # Write issued certificate to disk
     filename = subject_keys.certificatefile

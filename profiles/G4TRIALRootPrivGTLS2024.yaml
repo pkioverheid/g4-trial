@@ -21,10 +21,7 @@ extensions:
     oid: 2.5.29.14
     value: RFC5280 - Method 1
 hashAlgorithm: sha512
-issuer:
-  C: NL
-  CN: TRIAL PKIoverheid - G4 Root Priv G-TLS - 2024
-  O: TRIAL PKIoverheid - not for Production use
+issuer: TRIALPKIoverheidG4RootPrivGTLS2024.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
 publicKeyLength: 4096 bit
@@ -45,11 +42,14 @@ validations:
           const: NL
           type: string
         CN:
-          pattern: TRIAL PKIoverheid - G[0-9] Root (EUTL|Publ|Priv) (G-|S-|R-)(Sigs|SMIME|TLS|Other|CIBG|MinDef|ILT|OCSP)
-            (NP |LP |SYS )?(- 20[0-9][0-9])(-[0-9]+)?$
+          allOf:
+          - pattern: TRIAL PKIoverheid - .*
+          - pattern: ' - G4 Root Priv G-TLS - 20[0-9][0-9](-[0-9]+)?$'
+          maxLength: 64
           type: string
         O:
           const: TRIAL PKIoverheid - not for Production use
+          maxLength: 64
           type: string
       required:
       - C

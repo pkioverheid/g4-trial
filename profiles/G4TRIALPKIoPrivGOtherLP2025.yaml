@@ -64,10 +64,7 @@ extensions:
     oid: 2.5.29.14
     value: RFC5280 - Method 1
 hashAlgorithm: sha512
-issuer:
-  C: NL
-  CN: TRIAL PKIoverheid - G4 Intm Priv G-Other LP - 2024
-  O: TRIAL PKIoverheid - not for Production use
+issuer: TRIALPKIoverheidG4IntmPrivGOtherLP2024.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
 publicKeyLength: 4096 bit
@@ -88,11 +85,14 @@ validations:
           const: NL
           type: string
         CN:
-          pattern: TRIAL My TSP - G[0-9] PKIo (EUTL|Publ|Priv) (G-|S-|R-)(Sigs|SMIME|TLS|Other|CIBG|MinDef|ILT|OCSP)
-            (NP |LP |SYS )?(- 20[0-9][0-9])(-[0-9]+)?$
+          allOf:
+          - pattern: 'TRIAL .* - '
+          - pattern: ' - G4 PKIo Priv (G-Other|S-CIBG) LP - 20[0-9][0-9](-[0-9]+)?$'
+          maxLength: 64
           type: string
         O:
-          pattern: My TSP - not for Production use
+          maxLength: 39
+          minLength: 2
           type: string
         organizationIdentifier:
           pattern: NTRNL-[0-9]{8}

@@ -1,5 +1,4 @@
 import os
-import pathlib
 from datetime import datetime, timedelta
 
 import yaml
@@ -80,7 +79,7 @@ schema = JSONSchema.loadf(os.path.join('schema', 'revocations.json'))
 def process(revocationfile, config, force=False):
 
     # Find keys
-    ca_keys = KeyPair(pathlib.Path(revocationfile).stem).load()
+    ca_keys = KeyPair.for_filename(revocationfile).load()
 
     # Check must be a CA
     basic_constraints = ca_keys.certificate.extensions.get_extension_for_class(BasicConstraints).value
@@ -93,8 +92,7 @@ def process(revocationfile, config, force=False):
         # Write a boilerplate YAML
         d = {'revocations': []}
         with open(revocationfile, 'w') as outfile:
-            outfile.write("---\n")
-            yaml.dump(d, outfile, default_flow_style=False)
+            yaml.dump(d, outfile, default_flow_style=False, explicit_start=True)
 
     # Validate input
     profile = load_yaml(revocationfile)

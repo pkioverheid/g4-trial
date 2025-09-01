@@ -1,8 +1,11 @@
 import os
+import logging
+import pathlib
 
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509 import load_der_x509_certificate
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.x509 import load_der_x509_certificate, CertificateSigningRequestBuilder, CertificateSigningRequest
 
 from .util import force_int
 
@@ -20,6 +23,13 @@ class KeyPair:
         self.private_key = None
         self.public_key = None
 
+    @classmethod
+    def for_filename(cls, filename):
+        return cls(pathlib.Path(filename).stem)
+
+    def exists(self):
+        return os.path.isfile(self.privatekeyfile) or os.path.isfile(self.certificatefile)
+
     def load(self):
         with open(self.privatekeyfile, "rb") as f:
             self.private_key = serialization.load_pem_private_key(f.read(), password=None)
@@ -30,9 +40,10 @@ class KeyPair:
         return self
 
     def generate_private_key(self, config):
+    def generate_private_key(self, profile):
         self.private_key = rsa.generate_private_key(
-            public_exponent=force_int(config['exponent']),
-            key_size=force_int(config['publicKeyLength'])
+            public_exponent=force_int(profile['exponent']),
+            key_size=force_int(profile['publicKeyLength'])
         )
         self.public_key = self.private_key.public_key()
 
@@ -52,4 +63,11 @@ class KeyPair:
             ))
 
     def __str__(self):
-        return f'KeyPair<{self.basename}, {self.privatekeyfile} and {self.certificatefile}>'
+        p_loaded = ""
+        if self.private_key:
+            p_loaded = " (loaded)"
+        c_loaded = ""
+        if self.certificate:
+            c_loaded = " (loaded)"
+
+        return f'KeyPair<Private Key={self.privatekeyfile}{p_loaded}, Certificate={self.certificatefile}{c_loaded}>'

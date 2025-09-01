@@ -1,7 +1,8 @@
 import argparse
 
-from lib.util import load_yaml
 from lib import cert
+from lib.keypair import KeyPair
+from lib.util import load_yaml
 
 if __name__ == "__main__":
 
@@ -12,12 +13,19 @@ if __name__ == "__main__":
 
     config = load_yaml("config.yaml")
 
-    for enrollmentfile in args.enrollments:
-        enrollment = load_yaml(enrollmentfile)
+    for filename in args.enrollments:
+        enrollment = load_yaml(filename)
 
-        if args.profile_override:
-            profilefile = args.profile_override
-        else:
-            profilefile = enrollment['profile']
+        profilefilename = args.profile_override or enrollment['profile']
 
-        cert.process(load_yaml(profilefile), enrollment, enrollmentfile, config)
+        subject_keys = KeyPair.for_filename(filename)
+
+        try:
+            subject_keys.load()
+            print(f"Certificate {subject_keys} already exists, skipping")
+            continue
+        except FileNotFoundError:
+            pass
+
+        print(f"Processing {filename}")
+        cert.process(load_yaml(profilefilename), enrollment, subject_keys, config)
