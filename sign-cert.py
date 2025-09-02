@@ -4,7 +4,7 @@ import logging
 import os
 
 from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import load_pem_x509_csr
+from cryptography.x509 import load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound, DNSName
 from jschon import create_catalog, JSON, JSONSchema
 
 from lib.cert import sign, IssuerNotFoundError
@@ -42,7 +42,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('csrs', nargs='+', help="CSRs to process")
-    parser.add_argument('--profile', help="Sign CSRs with specified profile")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--profile', help="Path to a profile file to sign the CRS with")
+    group.add_argument('--enrollment', help="Path to an enrollment file to use in the certificate. Overrides any information in the CSR, except for the public key")
+
     args = parser.parse_args()
 
     config = load_yaml("config.yaml")
@@ -57,11 +61,23 @@ if __name__ == "__main__":
 
         # TODO: Verify technically the CSR
 
-        enrollment = {
-            'profile': 'tbd',
-            'subject': as_dict(csr.subject)
-        }
-        enrollment['profile'] = args.profile or find_profile(enrollment)
+        if args.enrollment:
+            # Use provided enrollment file
+            enrollment = load_yaml(args.enrollment)
+        else:
+            # Rebuild enrollment from CSR data
+            enrollment = {
+                'profile': 'tbd',
+                'subject': as_dict(csr.subject)
+            }
+            try:
+                ext = csr.extensions.get_extension_for_class(SubjectAlternativeName)
+                enrollment['subjectAltNames'] = ext.value.get_values_for_type(DNSName)
+            except ExtensionNotFound:
+                pass
+            enrollment['profile'] = args.profile or find_profile(enrollment)
+
+        # Validate
         subject_profile = load_yaml(enrollment['profile'])
         validate(enrollment, subject_profile)
 

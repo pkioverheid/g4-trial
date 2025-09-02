@@ -132,9 +132,11 @@ python create-ca.py
 
 ## Create end entity certificates
 
-Each end entity certificate requires subject information to be provided separately from the certificate profile. This information is provided using an "enrollment" YAML file. Please see any of the files in the `examples/enrollment` directory. The filename will indicate the certificate type. Please see the "G1/G3 to G4 mapping table" on the logius.nl website for information which certificate type you need for your use case. 
+Each end entity certificate requires subject information to be provided separately from the certificate profile. This information is provided using either an "enrollment" YAML file or a Certificate Signing Request (CSR). Please see any of the files in the `examples/enrollment` directory. The filename will indicate the certificate type. Please see the "G1/G3 to G4 mapping table" on the logius.nl website for information which certificate type you need for your use case. 
 
-Enrollment files will need to be modified for your own use cases. An example enrollment file would be:
+### Generate key pairs by the fauxTSP
+
+When enrollment files are used, the fauxTSP generates the keypair and provides them to the subscriber. Enrollment files will need to be modified for your own use cases. An example enrollment file would be:
 
 ```yaml
 ---
@@ -161,9 +163,21 @@ Example enrollment files can be used directly, e.g. the following command will c
 python generate-cert.py examples/enrollment/G4-Private-G-TLS-SYS-WithOrganizationIdentifier.yaml
 ```
 
-Prior to generating the certificate, the script will validate your enrollment file against the requirements for the selected hierarchy and output any discrepancies. Please note that no validations are performed on the actual contents of each attribute, please refer to the documents listed under [Certificate Profiles](#certificate-profiles) to determine what information should be included in each field. 
+Prior to generating the certificate, the script will validate your enrollment file against the requirements for the selected certificate profile and output any discrepancies. Please note that no validations are performed on the actual contents of each attribute, please refer to the documents listed under [Certificate Profiles](#certificate-profiles) to determine what information should be included in each field. 
 
 The filenames of the newly generated private and public keys will match the filename of the enrollment file. They will be placed in the `ca/private` and the `ca/certs` directories. The command will not overwrite any preexisting files. 
+
+### Subscriber provides public key using a Certificate Signing Request (CSR)
+
+A Subscriber usually generates a key pair themselves, encapsulates the public key alongside `subject` and `subjectAlternateNames` information into a PKCS #10 CSR. To generate the certificate using the default settings, run:    
+
+```bash
+python sign-cert.py <CSR file>
+```
+
+This will attempt to localize the appropriate certificate profile. If none or multiple are found an error is shown. Use the `--profile` flag to manually select the certificate profile to use.
+
+Alternatively you can override the information provided in the CSR (except for the public key). Create an enrollment file and provide it to `sign-cert.py` using the `--enrollment` flag. 
 
 ## Revocations
 

@@ -1,16 +1,17 @@
-import os
 import logging
+import os
 import pathlib
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.x509 import load_der_x509_certificate, CertificateSigningRequestBuilder, CertificateSigningRequest
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.x509 import load_der_x509_certificate, CertificateSigningRequest
 
 from .util import force_int
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
 
 def get_hash_algo(name):
     return {
@@ -81,36 +82,11 @@ class KeyPair:
                 serialization.NoEncryption()
             ))
 
-    def create_csr(self, profile, subject, output_filename):
-        if not self.private_key:
-            try:
-                with open(self.privatekeyfile, "rb") as f:
-                    self.private_key = serialization.load_pem_private_key(f.read(), password=None)
-            except FileNotFoundError:
-                self.generate_private_key(profile)
-
-        hash_algo = get_hash_algo(profile['hashAlgorithm'])
-
-        builder = CertificateSigningRequestBuilder().subject_name(subject)
-
-        csr = builder.sign(self.private_key,
-                       algorithm=hash_algo,
-                       rsa_padding=padding.PSS(
-                           mgf=padding.MGF1(hash_algo),
-                           salt_length=force_int(profile.get('saltLength', 64))
-                       ))
-
-        with open(output_filename, "wb") as f:
-            f.write(csr.public_bytes(serialization.Encoding.PEM))
-
     def load_from_csr(self, csr: CertificateSigningRequest):
         if self.private_key or self.public_key:
             raise ValueError(f'Some keys are already loaded, not overriding them from CSR.')
         self.public_key = csr.public_key()
-
         logger.info(f"Loaded public key from CSR")
-
-        #print(self.public_key.public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo))
 
     def __str__(self):
         p_loaded = ""
