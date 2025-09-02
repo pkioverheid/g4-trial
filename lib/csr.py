@@ -1,20 +1,26 @@
+import logging
+import os
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import CertificateSigningRequestBuilder, SubjectAlternativeName, DNSName
 
-from .keypair import get_hash_algo
+from .keypair import get_hash_algo, KeyPair
 from .names import as_name
 from .ra import validate
 from .util import force_int
 
+logger = logging.getLogger(__name__)
 
-def create_csr(profile, enrollment, subject_keys):
+
+def create_csr(profile: dict, enrollment: dict, subject_keys: KeyPair, password=None):
     if not subject_keys.private_key:
-        try:
-            with open(subject_keys.privatekeyfile, "rb") as f:
-                subject_keys.private_key = serialization.load_pem_private_key(f.read(), password=None)
-        except FileNotFoundError:
-            subject_keys.generate_private_key(profile)
+        if os.path.exists(subject_keys.privatekeyfile):
+            raise FileExistsError(subject_keys.privatekeyfile)
+
+        if password:
+            password.encode("UTF-8")
+        subject_keys.generate_private_key(profile, password=password)
 
     hash_algo = get_hash_algo(profile['hashAlgorithm'])
 
@@ -33,14 +39,14 @@ def create_csr(profile, enrollment, subject_keys):
                         ))
 
 
-def process(profile, enrollment, keypair, config):
+def process(profile: dict, enrollment: dict, keypair: KeyPair, config: dict, subject_password=None):
     validate(enrollment, profile)
 
-    csr_path = f"{keypair.basename}.csr"
-    csr = create_csr(profile, enrollment, keypair)
+    csr = create_csr(profile, enrollment, keypair, password=subject_password)
 
+    csr_path = f"{keypair.basename}.csr"
     with open(csr_path, "wb") as f:
         f.write(csr.public_bytes(serialization.Encoding.PEM))
 
-    print(f"Private key written to {keypair.privatekeyfile}")
-    print(f"CSR written to {csr_path}")
+    logger.info(f"Private key written to {keypair.privatekeyfile}")
+    logger.info(f"CSR written to {csr_path}")

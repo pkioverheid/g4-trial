@@ -191,3 +191,33 @@ jobs:
         run: |
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
           openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
+
+  use-passwords:
+    name: Use password encrypted private keys
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create Root
+        run: python generate-cert.py --subject-password RootPassword1 "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+
+      - name: Check
+        run: ls ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer
+
+      - name: Use without password (fails)
+        run: "! python generate-cert.py enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+
+      - name: Check (fails)
+        run: "! ls ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer"
+
+      - name: Use with password
+        run: python generate-cert.py --issuer-password RootPassword1 --subject-password DomainPassword1 "enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+
+      - name: Check
+        run: ls ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer
+

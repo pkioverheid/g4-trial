@@ -16,7 +16,6 @@ from .ra import validate
 from .util import force_int, keys_exist, load_yaml
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class IssuerNotFoundError(Exception):
@@ -163,17 +162,14 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
 
 
 def sign(profile, enrollment, issuer, subject_keys, issuer_keys, config):
-    logger.info(f"Signing certificate {enrollment['subject']} using {issuer['subject']['CN']}")
+
+    logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {as_name(issuer['subject']).rfc4514_string()}")
 
     # Replace placeholders with actual values
     if keys_exist(profile, ['extensions', 'authorityInfoAccess', 'caIssuers']):
-        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess'][
-                                                                        'caIssuers'] % config['caIssuersBaseUrl']
+        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess']['caIssuers'] % config['caIssuersBaseUrl']
     if keys_exist(profile, ['extensions', 'cRLDistributionPoints', 'value']):
-        profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for
-                                                                   value in
-                                                                   profile['extensions']['cRLDistributionPoints'][
-                                                                       'value']]
+        profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for value in profile['extensions']['cRLDistributionPoints']['value']]
 
     # Validity
     if profile['validity']['notBefore'] == 'now':
@@ -221,7 +217,7 @@ def sign(profile, enrollment, issuer, subject_keys, issuer_keys, config):
     return cert
 
 
-def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict):
+def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict, issuer_password=None, subject_password=None):
     validate(enrollment, profile)
 
     # Find issuer keypair by its DN from its enrollment
@@ -236,11 +232,12 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
             print(f"KeyPair for {issuer_keys} already exists, skipping")
             return
         except FileNotFoundError:
-            issuer_keys.generate_private_key(profile)
+            # NOTE: use the subject password as it is used to encrypt the private key
+            issuer_keys.generate_private_key(profile, password=subject_password)
             subject_keys = issuer_keys
     else:
         try:
-            issuer_keys.load()
+            issuer_keys.load(password=issuer_password)
         except FileNotFoundError as e:
             raise IssuerNotFoundError(
                 f"Cannot find keys of {issuer_keys} for signing operation, please generate it first") from e
@@ -248,7 +245,8 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
         try:
             subject_keys.load()
         except FileNotFoundError:
-            subject_keys.generate_private_key(profile)
+            logger.debug("Generating new key pair for subject")
+            subject_keys.generate_private_key(profile, password=subject_password)
 
     cert = sign(profile, enrollment, issuer, subject_keys, issuer_keys, config)
 
@@ -257,4 +255,4 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
     with open(filename, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.DER))
 
-    print(f"Certificate issued and saved to {filename}")
+    logger.info(f"Certificate issued and saved to {filename}")

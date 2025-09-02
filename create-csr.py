@@ -1,31 +1,31 @@
 import argparse
 import logging
+import sys
 
 from lib import csr
 from lib.keypair import KeyPair
 from lib.util import load_yaml
 
-logger = logging.getLogger("example")
-logger.setLevel(logging.INFO)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger("create-csr")
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--subject-password', action="store", help="Password to encrypt subject's private key")
     parser.add_argument('enrollments', nargs='+', help="Enrollment to create key pairs and Certificate Signing Request for")
     args = parser.parse_args()
 
     config = load_yaml("config.yaml")
 
     for filename in args.enrollments:
-        enrollment = load_yaml(filename)
-        profilefilename = enrollment['profile']
-
         logger.info(f"Processing {filename}")
 
-        keypair = KeyPair.for_filename(filename)
-
-        if keypair.exists():
+        subject_keys = KeyPair.for_filename(filename)
+        if subject_keys.exists():
             logger.error(f"Some files already exist for {filename}, skipping")
             continue
 
-        csr.process(load_yaml(profilefilename), enrollment, keypair, config)
+        enrollment = load_yaml(filename)
+
+        csr.process(load_yaml(enrollment['profile']), enrollment, subject_keys, config, subject_password=args.subject_password)

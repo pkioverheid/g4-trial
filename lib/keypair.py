@@ -10,7 +10,6 @@ from cryptography.x509 import load_der_x509_certificate, CertificateSigningReque
 from .util import force_int
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def get_hash_algo(name):
@@ -41,13 +40,15 @@ class KeyPair:
     def exists(self):
         return os.path.isfile(self.privatekeyfile) or os.path.isfile(self.certificatefile)
 
-    def load(self):
+    def load(self, password=None):
         if self.public_key:
             logger.debug(f"Public Key already loaded")
         else:
             if not self.private_key:
                 with open(self.privatekeyfile, "rb") as f:
-                    self.private_key = serialization.load_pem_private_key(f.read(), password=None)
+                    if password:
+                        password = password.encode("utf-8")
+                    self.private_key = serialization.load_pem_private_key(f.read(), password=password)
             if not self.certificate:
                 with open(self.certificatefile, "rb") as f:
                     # Load the certificate and extract the public key
@@ -57,7 +58,7 @@ class KeyPair:
             logger.debug(f"Loaded private key and certificate files")
         return self
 
-    def generate_private_key(self, profile):
+    def generate_private_key(self, profile:dict, password=None):
         logger.info(f"Generating keypair")
         self.private_key = rsa.generate_private_key(
             public_exponent=force_int(profile['exponent']),
@@ -75,11 +76,16 @@ class KeyPair:
 
         logger.debug(f"Saving private key to {self.privatekeyfile}")
 
+        if password:
+            encryption = serialization.BestAvailableEncryption(password.encode("utf-8"))
+        else:
+            encryption = serialization.NoEncryption()
+
         with open(self.privatekeyfile, "wb") as f:
             f.write(self.private_key.private_bytes(
                 serialization.Encoding.PEM,
                 serialization.PrivateFormat.TraditionalOpenSSL,
-                serialization.NoEncryption()
+                encryption_algorithm=encryption
             ))
 
     def load_from_csr(self, csr: CertificateSigningRequest):

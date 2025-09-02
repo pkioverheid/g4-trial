@@ -2,6 +2,7 @@ import argparse
 import glob
 import logging
 import os
+import sys
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound, DNSName
@@ -13,6 +14,10 @@ from lib.keypair import KeyPair
 from lib.names import as_dict
 from lib.ra import validate
 from lib.util import load_yaml
+
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger("sign-cert")
 
 
 def find_profile(enrollment: dict) -> str:
@@ -73,6 +78,7 @@ if __name__ == "__main__":
             try:
                 ext = csr.extensions.get_extension_for_class(SubjectAlternativeName)
                 enrollment['subjectAltNames'] = ext.value.get_values_for_type(DNSName)
+                logger.debug(f"CSR contained {len(enrollment['subjectAltNames'])} SANs.")
             except ExtensionNotFound:
                 pass
             enrollment['profile'] = args.profile or find_profile(enrollment)
@@ -91,8 +97,8 @@ if __name__ == "__main__":
         try:
             issuer_keys.load()
         except FileNotFoundError as e:
-            raise IssuerNotFoundError(
-                f"Cannot find keys of {issuer_keys} for signing operation, please generate it first") from e
+            logger.fatal(f"Cannot find keys of {issuer_keys} for signing operation, please generate it first")
+            exit(1)
 
         cert = sign(subject_profile, enrollment, issuer_profile, subject_keys, issuer_keys, config)
 
@@ -101,4 +107,4 @@ if __name__ == "__main__":
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
 
-        print(f"Certificate issued and saved to {filename}")
+        logger.info(f"Certificate issued and saved to {filename}")
