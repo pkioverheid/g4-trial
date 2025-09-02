@@ -19,6 +19,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+class IssuerNotFoundError(Exception):
+    pass
+
+
 def build_qc_statements_extension(qc_data):
     """
     Encodes a single QCStatement with a statementId and statementInfo (OID).
@@ -238,7 +242,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
         try:
             issuer_keys.load()
         except FileNotFoundError as e:
-            raise ValueError(
+            raise IssuerNotFoundError(
                 f"Cannot find keys of {issuer_keys} for signing operation, please generate it first") from e
 
         try:

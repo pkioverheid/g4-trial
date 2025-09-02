@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_csr
 from jschon import create_catalog, JSON, JSONSchema
 
-from lib.cert import sign
+from lib.cert import sign, IssuerNotFoundError
 from lib.dn import generate_basename
 from lib.keypair import KeyPair
 from lib.names import as_dict
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         try:
             issuer_keys.load()
         except FileNotFoundError as e:
-            raise ValueError(
+            raise IssuerNotFoundError(
                 f"Cannot find keys of {issuer_keys} for signing operation, please generate it first") from e
 
         cert = sign(subject_profile, enrollment, issuer_profile, subject_keys, issuer_keys, config)
