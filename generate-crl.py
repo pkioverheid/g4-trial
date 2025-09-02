@@ -1,7 +1,12 @@
 import argparse
+import logging
+import sys
 
 from lib.util import load_yaml
 from lib import crl
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger("generate-crl")
 
 
 def main():
@@ -12,8 +17,9 @@ def main():
 
     config = load_yaml("config.yaml")
 
-    for revocation in args.revocations:
-        crl.process(revocation, config, args.force)
+    for filename in args.revocations:
+        logger.info(f"Processing {filename}")
+        crl.process(filename, config, args.force)
 
 
 if __name__ == "__main__":

@@ -1,27 +1,25 @@
+import logging
 import os
-import pathlib
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 from asn1crypto.core import Sequence, ObjectIdentifier as Asn1OID, SequenceOf
 from cryptography import x509
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
-from jschon import create_catalog, JSON, JSONSchema
 
 from .dn import as_name, generate_basename
-from .keypair import KeyPair
-from .util import force_int, output_errors, keys_exist
+from .keypair import KeyPair, get_hash_algo
+from .ra import validate
+from .util import force_int, keys_exist, load_yaml
+
+logger = logging.getLogger(__name__)
 
 
-def get_hash_algo(name):
-    return {
-        'sha512': hashes.SHA512(),
-        'sha384': hashes.SHA384(),
-        'sha256': hashes.SHA256(),
-    }[name.lower()]
+class IssuerNotFoundError(Exception):
+    pass
 
 
 def build_qc_statements_extension(qc_data):
@@ -59,7 +57,6 @@ def build_qc_statements_extension(qc_data):
 
 
 def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
-
     if 'basicConstraints' in ext:
         builder = builder.add_extension(
             x509.BasicConstraints(
@@ -164,20 +161,41 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
     return builder
 
 
-def sign(profile, enrollment, subject_keys, issuer_keys):
+def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:dict):
+
+    logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {as_name(issuer['subject']).rfc4514_string()}")
+
+    # Replace placeholders with actual values
+    if keys_exist(profile, ['extensions', 'authorityInfoAccess', 'caIssuers']):
+        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess']['caIssuers'] % config['caIssuersBaseUrl']
+    if keys_exist(profile, ['extensions', 'cRLDistributionPoints', 'value']):
+        profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for value in profile['extensions']['cRLDistributionPoints']['value']]
 
     # Validity
-    if profile['validity']['notBefore'] == 'now':
-        not_before = datetime.now()
-    else:  # assume date time format
+    if isinstance(profile['validity']['notBefore'], datetime):
+        # Absolute date
+        not_before = profile['validity']['notBefore']
+    elif profile['validity']['notBefore'] == 'now':
+        not_before = datetime.now(UTC)
+    else:  # assume date time format as string
         not_before = datetime.fromisoformat(profile['validity']['notBefore'])
 
-    match = re.match("^([0-9]+)d$", profile['validity']['notAfter'])
-    if match:
-        # last second is inclusive, therefore substract one second
-        not_after = not_before + timedelta(days=int(match.group(1))) - timedelta(seconds=1)
-    else:  # assume date time format
-        not_after = datetime.fromisoformat(profile['validity']['not_after'])
+    if isinstance(profile['validity']['notAfter'], datetime):
+        # Absolute date
+        not_after = profile['validity']['notAfter']
+    else:
+        match = re.match("^issuer([0-9-+]+)d$", profile['validity']['notAfter'])
+        if match:
+            # Is a period relative to the issuer's notAfter. NOTE: last second is inclusive, therefore substract one second
+            not_after = issuer_keys.certificate.not_valid_after_utc + timedelta(days=int(match.group(1)), seconds=-1)
+        else:
+            match = re.match("^([0-9]+)d$", profile['validity']['notAfter'])
+            if match:
+                # Relative date into the future
+                not_after = not_before + timedelta(days=int(match.group(1)), seconds=-1)
+            else:
+                # assume date time format as string
+                not_after = datetime.fromisoformat(profile['validity']['notAfter'])
 
     # Generate a random Serial number
     serial_number = int.from_bytes(os.urandom(20), "big") >> 1
@@ -188,7 +206,7 @@ def sign(profile, enrollment, subject_keys, issuer_keys):
     # Certificate Builder
     builder = x509.CertificateBuilder()
     builder = builder.subject_name(as_name(enrollment['subject']))
-    builder = builder.issuer_name(as_name(profile['issuer']))
+    builder = builder.issuer_name(as_name(issuer['subject']))
     builder = builder.public_key(subject_keys.public_key)
     builder = builder.serial_number(serial_number)
     builder = builder.not_valid_before(not_before)
@@ -212,65 +230,42 @@ def sign(profile, enrollment, subject_keys, issuer_keys):
     return cert
 
 
-def process(profile, enrollment, enrollmentfile, config):
+def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict, issuer_password=None, subject_password=None):
+    validate(enrollment, profile)
 
-    # Validate CSR against the certificate profile
-    create_catalog("2020-12")
-    schema = JSONSchema(profile['validations'])
-    result = schema.evaluate(JSON(enrollment))
-    if not result.valid:
-        print(f"Enrollment {enrollmentfile} is invalid for specified certificate profile ❌")
-        output_errors(result.output("detailed")["errors"])
-        exit(1)
+    # Find issuer keypair by its DN from its enrollment
+    issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
+    issuer_keys = KeyPair(generate_basename(issuer['subject']))
 
-    selfsigned = profile['issuer'] == enrollment['subject']
-
-    # Find issuer keypair by name
-    issuer_name = generate_basename(profile['issuer'])
-    issuer_keys = KeyPair(issuer_name)
-
-    if not selfsigned and not os.path.exists(issuer_keys.certificatefile):
-        # If keys for a self-signed do not exist, we'll create them later
-        print(f"Cannot find keys of {issuer_keys} for signing operation, please generate it first")
-        return
-
-    try:
-        issuer_keys.load()
-    except FileNotFoundError:
-        issuer_keys.generate_private_key(profile)
-
+    selfsigned = issuer['subject'] == enrollment['subject']
     if selfsigned:
-        subject_keys = issuer_keys
-
-        if os.path.exists(subject_keys.certificatefile):
-            print(f"Certificate {subject_keys.basename} already exists, skipping")
+        logger.debug("Issuing a self signed certificate")
+        try:
+            issuer_keys.load()
+            print(f"KeyPair for {issuer_keys} already exists, skipping")
             return
-
+        except FileNotFoundError:
+            # NOTE: use the subject password as it is used to encrypt the private key
+            issuer_keys.generate_private_key(profile, password=subject_password)
+            subject_keys = issuer_keys
     else:
-        # Find cert private key - use the same name as the input YAML file
-        basename = pathlib.Path(enrollmentfile).stem
-        subject_keys = KeyPair(basename)
-
-        if os.path.exists(subject_keys.certificatefile):
-            print(f"Certificate {basename} already exists, skipping")
-            return
+        try:
+            issuer_keys.load(password=issuer_password)
+        except FileNotFoundError as e:
+            raise IssuerNotFoundError(
+                f"Cannot find keys of {issuer_keys} for signing operation, please generate it first") from e
 
         try:
             subject_keys.load()
         except FileNotFoundError:
-            subject_keys.generate_private_key(profile)
+            logger.debug("Generating new key pair for subject")
+            subject_keys.generate_private_key(profile, password=subject_password)
 
-    # Some proposed certificate values contain placeholders, replace them here to keep the sign funcion clean
-    if keys_exist(profile, ['extensions', 'authorityInfoAccess', 'caIssuers']):
-        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess']['caIssuers'] % config['caIssuersBaseUrl']
-    if keys_exist(profile, ['extensions', 'cRLDistributionPoints', 'value']):
-        profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for value in profile['extensions']['cRLDistributionPoints']['value']]
-
-    cert = sign(profile, enrollment, subject_keys, issuer_keys)
+    cert = sign(profile, enrollment, issuer, subject_keys, issuer_keys, config)
 
     # Write issued certificate to disk
     filename = subject_keys.certificatefile
     with open(filename, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.DER))
 
-    print(f"Certificate issued and saved to {filename}")
+    logger.info(f"Certificate issued and saved to {filename}")

@@ -1,6 +1,7 @@
 from lib import cert
 from lib import crl
 from lib.domains import verify
+from lib.keypair import KeyPair
 from lib.util import load_yaml, choose, load_config
 
 
@@ -16,7 +17,8 @@ def main():
 
     # Creating a hierarchy means creating a number of keys
     for layer in options[hierarchy]['hierarchy']:
-        cert.process(load_yaml(layer['profile']), load_yaml(layer['enrollment']), layer['enrollment'], config)
+        subject_keys = KeyPair.for_filename(layer['enrollment'])
+        cert.process(load_yaml(layer['profile']), load_yaml(layer['enrollment']), subject_keys, config)
         crl.process(layer['revocations'], config, force=True)
 
     print(f'To automate this step, run next time:')

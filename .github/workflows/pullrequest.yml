@@ -1,0 +1,243 @@
+name: Pull Request
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [synchronize, opened, ready_for_review]
+
+jobs:
+  allup:
+    name: Generate a full hierarchy (automatic)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create CA
+        run: echo 1 | python create-ca.py
+
+      - name: Issue a certificate
+        run:
+          python generate-cert.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
+
+      - name: Files exist
+        run: |
+          ls ca/private/TRIALPKIoverheidG4RootPrivGTLS2024.key ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl
+          ls ca/private/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.key ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer ca/crl/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.crl 
+          ls ca/private/TRIALMyTSPG4PKIoPrivGTLSSYS2025.key ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer ca/crl/TRIALMyTSPG4PKIoPrivGTLSSYS2025.crl
+          ls ca/private/G4-Private-G-TLS-SYS.key ca/certs/G4-Private-G-TLS-SYS.cer
+
+      - name: Verify
+        run: |
+          find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.pem
+          
+  one-by-one:
+    name: Generate a full hierarchy (separate)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create Root
+        run: |
+          python generate-cert.py "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+          ls ca/private/TRIALPKIoverheidG4RootPrivGTLS2024.key ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer
+          python generate-crl.py --force "revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+          ls ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl
+
+      - name: Create Domain
+        run: |
+          python generate-cert.py "enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+          ls ca/private/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.key ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer
+          python generate-crl.py --force "revocations/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+          ls ca/crl/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.crl
+
+      - name: Create TSP
+        run: |
+          python generate-cert.py "enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml"
+          ls ca/private/TRIALMyTSPG4PKIoPrivGTLSSYS2025.key ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer
+          python generate-crl.py --force "revocations/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml"
+          ls ca/crl/TRIALMyTSPG4PKIoPrivGTLSSYS2025.crl
+
+      - name: Verify chain
+        run: |
+          find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem
+
+  reissue-crl:
+    name: Reissue a CRL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create Root CRLs
+        run: |
+          python generate-cert.py "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+          # Initial CRL
+          python generate-crl.py --force "revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+          first=$(openssl crl -in ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl -crlnumber -noout)
+          test "$first" == "crlNumber=0x01"
+          
+          # Second CRL
+          python generate-crl.py --force "revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+          second=$(openssl crl -in ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl -crlnumber -noout)
+          test "$second" == "crlNumber=0x02"
+
+  tsp-use-csr:
+    name: Sign a TSP certificate using a CSR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Generate CSR
+        run: |
+          python create-csr.py enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
+          ls ca/private/TRIALMyTSPG4PKIoPrivGTLSSYS2025.key
+          ls TRIALMyTSPG4PKIoPrivGTLSSYS2025.csr
+
+      - name: Create Hierarchy
+        run: |
+          python generate-cert.py "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+          python generate-cert.py "enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+
+      - name: Sign TSP CSR
+        run: |
+          python sign-cert.py --profile profiles/G4TRIALPKIoPrivGTLSSYS2025.yaml TRIALMyTSPG4PKIoPrivGTLSSYS2025.csr
+          ls ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer
+
+      - name: Verify chain
+        run: |
+          find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem
+
+      - name: Verify matching key
+        run: |          
+          csrkey=$(openssl req -in TRIALMyTSPG4PKIoPrivGTLSSYS2025.csr -noout -pubkey)
+          cerkey=$(openssl x509 -in ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer -noout -pubkey)
+          test "$csrkey" == "$cerkey"
+
+  ee-use-csr-profile:
+    name: Sign a TSP certificate using a CSR and profile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create CA
+        run: echo 1 | python create-ca.py
+
+      - name: Generate CSR
+        run: |
+          python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
+          ls G4-Private-G-TLS-SYS.csr
+
+      - name: Sign TSP CSR using a profile
+        run: |
+          python sign-cert.py --profile profiles/G4TRIALEEPrivGTLSSYS2025.yaml G4-Private-G-TLS-SYS.csr
+          ls ca/certs/G4-Private-G-TLS-SYS.cer
+
+      - name: Verify chain
+        run: |
+          find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
+
+  ee-use-csr-enrollment:
+    name: Sign a TSP certificate using a CSR and enrollment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create CA
+        run: echo 1 | python create-ca.py
+
+      - name: Generate CSR
+        run: |
+          python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
+          ls G4-Private-G-TLS-SYS.csr
+
+      - name: Sign TSP CSR using an enrollment
+        run: |
+          python sign-cert.py --enrollment examples/enrollment/G4-Private-G-TLS-SYS.yaml G4-Private-G-TLS-SYS.csr
+          ls ca/certs/G4-Private-G-TLS-SYS.cer
+
+      - name: Verify chain
+        run: |
+          find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
+
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create CAs
+        run: |
+          echo 1 | python create-ca.py
+          echo 2 | python create-ca.py
+          echo 3 | python create-ca.py
+
+      - name: Issue examples
+        run: find examples/enrollment -name "*.yaml" -exec python generate-cert.py {} \;
+
+  use-passwords:
+    name: Use password encrypted private keys
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create Root
+        run: python generate-cert.py --subject-password RootPassword1 "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+
+      - name: Check
+        run: ls ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer
+
+      - name: Use without password (fails)
+        run: "! python generate-cert.py enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+
+      - name: Check (fails)
+        run: "! ls ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer"
+
+      - name: Use with password
+        run: python generate-cert.py --issuer-password RootPassword1 --subject-password DomainPassword1 "enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+
+      - name: Check
+        run: ls ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer
+

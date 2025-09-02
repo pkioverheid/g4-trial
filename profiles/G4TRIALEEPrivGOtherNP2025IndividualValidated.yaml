@@ -44,11 +44,7 @@ extensions:
     oid: 2.5.29.14
     value: RFC5280 - Method 1
 hashAlgorithm: sha512
-issuer:
-  C: NL
-  CN: TRIAL My TSP - G4 PKIo Priv G-Other NP - 2025
-  O: My TSP - not for Production use
-  organizationIdentifier: NTRNL-99999990
+issuer: TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
 publicKeyLength: 4096 bit
@@ -66,11 +62,12 @@ validations:
       additionalProperties: false
       properties:
         C:
-          const: NL
+          pattern: ^[A-Z][A-Z]$
           type: string
         CN:
           maxLength: 64
           minLength: 5
+          pattern: ^TRIAL .*
           type: string
         GN:
           maxLength: 64
@@ -97,6 +94,6 @@ validations:
   title: Private Other have a CN + Natural Persons
   type: object
 validity:
-  notAfter: 365d
+  notAfter: 397d
   notBefore: now
 version: 3 (0x2)

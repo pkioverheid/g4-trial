@@ -1,5 +1,5 @@
+import logging
 import os
-import pathlib
 from datetime import datetime, timedelta
 
 import yaml
@@ -12,6 +12,9 @@ from jschon import create_catalog, JSON, JSONSchema
 from .keypair import KeyPair
 from .util import force_int
 from .util import load_yaml, eprint, output_errors
+
+logger = logging.getLogger(__name__)
+
 
 reason_map = {
     "unspecified": ReasonFlags.unspecified,
@@ -80,21 +83,22 @@ schema = JSONSchema.loadf(os.path.join('schema', 'revocations.json'))
 def process(revocationfile, config, force=False):
 
     # Find keys
-    ca_keys = KeyPair(pathlib.Path(revocationfile).stem).load()
+    ca_keys = KeyPair.for_filename(revocationfile).load()
 
     # Check must be a CA
     basic_constraints = ca_keys.certificate.extensions.get_extension_for_class(BasicConstraints).value
     if not basic_constraints.ca:
-        eprint(f'Cannot create a CRL for non-CA certificates. Skipping')
+        logger.fatal(f'Cannot create a CRL for non-CA certificates. Skipping')
         exit(0)
 
     # If absent YAML, create a boilerplate file
     if force and not os.path.exists(revocationfile):
         # Write a boilerplate YAML
+        logger.debug(f"Revocation file {revocationfile} not found, writing boilerplate file")
+
         d = {'revocations': []}
         with open(revocationfile, 'w') as outfile:
-            outfile.write("---\n")
-            yaml.dump(d, outfile, default_flow_style=False)
+            yaml.dump(d, outfile, default_flow_style=False, explicit_start=True)
 
     # Validate input
     profile = load_yaml(revocationfile)
@@ -102,7 +106,7 @@ def process(revocationfile, config, force=False):
     instance = JSON(profile)
     result = schema.evaluate(instance)
     if not result.valid:
-        print(f"{revocationfile} is invalid to generate a CRL ❌")
+        logger.fatal(f"{revocationfile} is invalid to generate a CRL ❌")
         output_errors(result.output("detailed")["errors"])
         exit(1)
 
@@ -119,6 +123,7 @@ def process(revocationfile, config, force=False):
         with open(filename, 'rb') as f:
             crl = load_der_x509_crl(f.read())
             current_crl_number = crl.extensions.get_extension_for_class(x509.CRLNumber).value.crl_number
+            logger.debug(f"Current cRLNumber is {current_crl_number}")
     except FileNotFoundError:
         pass
 
@@ -129,4 +134,4 @@ def process(revocationfile, config, force=False):
     with open(filename, "wb") as f:
         f.write(crl.public_bytes(serialization.Encoding.DER))
 
-    print(f"CRL with number {current_crl_number+1} signed containing {len(profile['revocations'])} revocations and saved to {filename}")
+    logger.info(f"Signed CRL with number {current_crl_number+1} containing {len(profile['revocations'])} revocations and saved to {filename}")

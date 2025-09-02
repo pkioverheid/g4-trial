@@ -52,11 +52,7 @@ extensions:
     oid: 2.5.29.14
     value: RFC5280 - Method 1
 hashAlgorithm: sha512
-issuer:
-  C: NL
-  CN: TRIAL My TSP - G4 PKIo Priv G-TLS SYS - 2025
-  O: My TSP - not for Production use
-  organizationIdentifier: NTRNL-99999990
+issuer: TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
 publicKeyLength: 4096 bit
@@ -74,18 +70,19 @@ validations:
       additionalProperties: false
       properties:
         C:
-          const: NL
+          pattern: ^[A-Z][A-Z]$
           type: string
         CN:
           maxLength: 64
           minLength: 2
+          pattern: ^TRIAL .*
           type: string
         O:
           maxLength: 64
           minLength: 2
           type: string
         organizationIdentifier:
-          pattern: NTRNL-[0-9]{8}
+          pattern: ^NTRNL-[0-9]{8}$
           type: string
         serialNumber:
           maxLength: 64
@@ -114,6 +111,6 @@ validations:
   title: End Entity TLS certificates require SANs + Organization Validation
   type: object
 validity:
-  notAfter: 365d
+  notAfter: 397d
   notBefore: now
 version: 3 (0x2)
