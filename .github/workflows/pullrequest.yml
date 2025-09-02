@@ -126,7 +126,7 @@ jobs:
       - name: Verify chain
         run: |
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
-          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem ca/certs/G4TRIALPKIoPrivGTLSSYS2025.pem
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem
 
       - name: Verify matching key
         run: |          
