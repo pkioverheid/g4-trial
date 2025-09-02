@@ -12,7 +12,7 @@ domains:
         enrollment: enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml
         revocations: revocations/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml
 
-      - profile: profiles/G4TRIALPKIoPrivGTLSSYS2024.yaml
+      - profile: profiles/G4TRIALPKIoPrivGTLSSYS2025.yaml
         enrollment: enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
         revocations: revocations/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
 

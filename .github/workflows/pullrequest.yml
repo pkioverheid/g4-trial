@@ -71,8 +71,7 @@ jobs:
         run: |
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
           openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem ca/certs/G4TRIALPKIoPrivGTLSSYS2025.pem
-          
-          
+
   reissue-crl:
     name: Reissue a CRL
     runs-on: ubuntu-latest
@@ -111,9 +110,9 @@ jobs:
       - name: Generate CSR
         run: |
           python create-csr.py enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
-          ls ca/private/G4TRIALPKIoPrivGTLSSYS2025.key
+          ls ca/private/TRIALMyTSPG4PKIoPrivGTLSSYS2025.key
           ls TRIALMyTSPG4PKIoPrivGTLSSYS2025.csr
-          "! ls ca/certs/G4TRIALPKIoPrivGTLSSYS2025.cer"
+          "! ls ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer"
 
       - name: Create Hierarchy
         run: |
@@ -155,15 +154,19 @@ jobs:
           python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
           ls G4-Private-G-TLS-SYS.csr
 
-      - name: Sign TSP CSR using a profile
+      - name: Sign TSP CSR using a wrong profile
         run: |
-          python sign-cert.py --profile profiles/G4TRIALPKIoPrivGTLSSYS2025.yaml G4-Private-G-TLS-SYS.csr
+          "! python sign-cert.py --profile profiles/G4TRIALPKIoPrivGTLSSYS2025.yaml G4-Private-G-TLS-SYS.csr"
+
+      - name: Sign TSP CSR using the correct profile
+        run: |
+          python sign-cert.py --profile profiles/G4TRIALEEPrivGTLSSYS2025.yaml G4-Private-G-TLS-SYS.csr
           ls ca/certs/G4-Private-G-TLS-SYS.cer
 
       - name: Verify chain
         run: |
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
-          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/G4TRIALPKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
 
   ee-use-csr-enrollment:
     name: Sign a TSP certificate using a CSR and enrollment
@@ -192,4 +195,4 @@ jobs:
       - name: Verify chain
         run: |
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
-          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/G4TRIALPKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
