@@ -121,7 +121,7 @@ jobs:
       - name: Sign TSP CSR
         run: |
           python sign-cert.py --profile profiles/G4TRIALPKIoPrivGTLSSYS2025.yaml TRIALMyTSPG4PKIoPrivGTLSSYS2025.csr
-          ls ca/certs/G4TRIALPKIoPrivGTLSSYS2025.cer
+          ls ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer
 
       - name: Verify chain
         run: |
