@@ -188,8 +188,14 @@ def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issue
         if match:
             # Is a period relative to the issuer's notAfter. NOTE: last second is inclusive, therefore substract one second
             not_after = issuer_keys.certificate.not_valid_after_utc + timedelta(days=int(match.group(1)), seconds=-1)
-        else:  # assume date time format as string
-            not_after = datetime.fromisoformat(profile['validity']['notAfter'])
+        else:
+            match = re.match("^([0-9]+)d$", profile['validity']['notAfter'])
+            if match:
+                # Relative date into the future
+                not_after = not_before + timedelta(days=int(match.group(1)), seconds=-1)
+            else:
+                # assume date time format as string
+                not_after = datetime.fromisoformat(profile['validity']['notAfter'])
 
     # Generate a random Serial number
     serial_number = int.from_bytes(os.urandom(20), "big") >> 1

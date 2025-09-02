@@ -192,6 +192,26 @@ jobs:
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
           openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
 
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create CAs
+        run: |
+          echo 1 | python create-ca.py
+          echo 2 | python create-ca.py
+          echo 3 | python create-ca.py
+
+      - name: Issue examples
+        run: find examples/enrollment -name "*.yaml" -exec python generate-cert.py {} \;
+
   use-passwords:
     name: Use password encrypted private keys
     runs-on: ubuntu-latest
