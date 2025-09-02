@@ -61,6 +61,6 @@ validations:
   - subject
   type: object
 validity:
-  notAfter: 365d
+  notAfter: 2039-05-20 00:00:00
   notBefore: now
 version: 3 (0x2)

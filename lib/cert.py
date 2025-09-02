@@ -161,7 +161,7 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
     return builder
 
 
-def sign(profile, enrollment, issuer, subject_keys, issuer_keys, config):
+def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:dict):
 
     logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {as_name(issuer['subject']).rfc4514_string()}")
 
@@ -172,17 +172,24 @@ def sign(profile, enrollment, issuer, subject_keys, issuer_keys, config):
         profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for value in profile['extensions']['cRLDistributionPoints']['value']]
 
     # Validity
-    if profile['validity']['notBefore'] == 'now':
+    if isinstance(profile['validity']['notBefore'], datetime):
+        # Absolute date
+        not_before = profile['validity']['notBefore']
+    elif profile['validity']['notBefore'] == 'now':
         not_before = datetime.now(UTC)
-    else:  # assume date time format
+    else:  # assume date time format as string
         not_before = datetime.fromisoformat(profile['validity']['notBefore'])
 
-    match = re.match("^([0-9]+)d$", profile['validity']['notAfter'])
-    if match:
-        # last second is inclusive, therefore substract one second
-        not_after = not_before + timedelta(days=int(match.group(1)), seconds=-1)
-    else:  # assume date time format
-        not_after = datetime.fromisoformat(profile['validity']['not_after'])
+    if isinstance(profile['validity']['notAfter'], datetime):
+        # Absolute date
+        not_after = profile['validity']['notAfter']
+    else:
+        match = re.match("^issuer([0-9-+]+)d$", profile['validity']['notAfter'])
+        if match:
+            # Is a period relative to the issuer's notAfter. NOTE: last second is inclusive, therefore substract one second
+            not_after = issuer_keys.certificate.not_valid_after_utc + timedelta(days=int(match.group(1)), seconds=-1)
+        else:  # assume date time format as string
+            not_after = datetime.fromisoformat(profile['validity']['notAfter'])
 
     # Generate a random Serial number
     serial_number = int.from_bytes(os.urandom(20), "big") >> 1

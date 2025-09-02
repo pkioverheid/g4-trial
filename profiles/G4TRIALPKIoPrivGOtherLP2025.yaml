@@ -95,7 +95,7 @@ validations:
           minLength: 2
           type: string
         organizationIdentifier:
-          pattern: NTRNL-[0-9]{8}
+          pattern: ^NTRNL-[0-9]{8}$
           type: string
       required:
       - C
@@ -108,6 +108,6 @@ validations:
   - subject
   type: object
 validity:
-  notAfter: 365d
+  notAfter: issuer-1d
   notBefore: now
 version: 3 (0x2)

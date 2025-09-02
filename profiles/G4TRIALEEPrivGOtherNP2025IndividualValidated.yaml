@@ -62,11 +62,12 @@ validations:
       additionalProperties: false
       properties:
         C:
-          pattern: '[A-Z][A-Z]'
+          pattern: ^[A-Z][A-Z]$
           type: string
         CN:
           maxLength: 64
           minLength: 5
+          pattern: ^TRIAL .*
           type: string
         GN:
           maxLength: 64
@@ -93,6 +94,6 @@ validations:
   title: Private Other have a CN + Natural Persons
   type: object
 validity:
-  notAfter: 365d
+  notAfter: 397d
   notBefore: now
 version: 3 (0x2)
