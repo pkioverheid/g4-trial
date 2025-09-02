@@ -89,12 +89,12 @@ jobs:
           # Initial CRL
           python generate-crl.py --force "revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
           first=$(openssl crl -in ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl -crlnumber -noout)
-          test $first == "crlNumber=0x01"
+          test "$first" == "crlNumber=0x01"
           
           # Second CRL
           python generate-crl.py --force "revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
           second=$(openssl crl -in ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl -crlnumber -noout)
-          test $second == "crlNumber=0x02"
+          test "$second" == "crlNumber=0x02"
 
   tsp-use-csr:
     name: Sign a TSP certificate using a CSR
@@ -132,7 +132,7 @@ jobs:
         run: |          
           csrkey=$(openssl req -in TRIALMyTSPG4PKIoPrivGTLSSYS2025.csr -noout -pubkey)
           cerkey=$(openssl x509 -in ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.cer -noout -pubkey)
-          test $csrkey == cerkey
+          test "$csrkey" == "$cerkey"
 
   ee-use-csr-profile:
     name: Sign a TSP certificate using a CSR and profile
