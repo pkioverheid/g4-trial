@@ -9,9 +9,9 @@ from cryptography.x509 import ReasonFlags, load_der_x509_crl
 from cryptography.x509.extensions import BasicConstraints
 from jschon import create_catalog, JSON, JSONSchema
 
+from .events import log_signed_crl
 from .keypair import KeyPair
-from .util import force_int
-from .util import load_yaml, eprint, output_errors
+from .util import force_int, load_yaml, output_errors
 
 logger = logging.getLogger(__name__)
 
@@ -133,5 +133,7 @@ def process(revocationfile, config, force=False):
     # Write to disk
     with open(filename, "wb") as f:
         f.write(crl.public_bytes(serialization.Encoding.DER))
+
+    log_signed_crl(crl)
 
     logger.info(f"Signed CRL with number {current_crl_number+1} containing {len(profile['revocations'])} revocations and saved to {filename}")
