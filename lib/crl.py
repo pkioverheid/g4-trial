@@ -80,10 +80,10 @@ catalog = create_catalog("2020-12")
 schema = JSONSchema.loadf(os.path.join('schema', 'revocations.json'))
 
 
-def process(revocationfile, config, force=False):
+def process(revocationfile, config, force=False, issuer_password=None):
 
     # Find keys
-    ca_keys = KeyPair.for_filename(revocationfile).load()
+    ca_keys = KeyPair.for_filename(revocationfile).load(password=issuer_password)
 
     # Check must be a CA
     basic_constraints = ca_keys.certificate.extensions.get_extension_for_class(BasicConstraints).value

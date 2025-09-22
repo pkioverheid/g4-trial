@@ -229,15 +229,32 @@ jobs:
       - name: Check
         run: ls ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer
 
-      - name: Use without password (fails)
+      - name: Generate CRL without password (yet it requires it)
+        run: "! python generate-crl.py revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+
+      - name: Check (fails)
+        run: "! ls ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl"
+
+      - name: Generate CRL with wrong password
+        run: "! python generate-crl.py --issuer-password WrongPassword revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
+
+      - name: Check (fails)
+        run: "! ls ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl"
+
+      - name: Generate CRL with correct password
+        run: python generate-crl.py --issuer-password RootPassword1 revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml
+
+      - name: Check
+        run: ls ca/crl/TRIALPKIoverheidG4RootPrivGTLS2024.crl
+
+      - name: Issue without password (fails)
         run: "! python generate-cert.py enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
 
       - name: Check (fails)
         run: "! ls ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer"
 
-      - name: Use with password
+      - name: Issue with password
         run: python generate-cert.py --issuer-password RootPassword1 --subject-password DomainPassword1 "enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
 
       - name: Check
         run: ls ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer
-
