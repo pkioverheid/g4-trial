@@ -1,12 +1,17 @@
+import logging
+import sys
+
 from lib import cert
 from lib import crl
 from lib.domains import verify
 from lib.keypair import KeyPair
 from lib.util import load_yaml, choose, load_config
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger("create-ca")
+
 
 def main():
-
     config = load_config()
 
     options = load_yaml("domains.yaml")['domains']

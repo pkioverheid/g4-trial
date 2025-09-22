@@ -11,6 +11,7 @@ from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
 
 from .dn import as_name, generate_basename
+from .events import log_issued_cert
 from .keypair import KeyPair, get_hash_algo
 from .ra import validate
 from .util import force_int, keys_exist, load_yaml
@@ -161,7 +162,7 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
     return builder
 
 
-def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:dict):
+def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:dict) -> x509.Certificate:
 
     logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {as_name(issuer['subject']).rfc4514_string()}")
 
@@ -267,5 +268,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
     filename = subject_keys.certificatefile
     with open(filename, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.DER))
+
+    log_issued_cert(cert)
 
     logger.info(f"Certificate issued and saved to {filename}")
