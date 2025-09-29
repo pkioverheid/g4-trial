@@ -82,7 +82,7 @@ validations:
           type: string
         CN:
           allOf:
-          - pattern: TRIAL PKIoverheid - .*
+          - pattern: '^TRIAL PKIoverheid - '
           - pattern: ' - G4 Intm Priv (G-Other|S-CIBG) LP - 20[0-9][0-9](-[0-9]+)?$'
           maxLength: 64
           type: string

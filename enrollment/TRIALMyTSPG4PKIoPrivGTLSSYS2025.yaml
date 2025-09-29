@@ -2,6 +2,6 @@
 profile: profiles/G4TRIALPKIoPrivGTLSSYS2025.yaml
 subject:
   C: NL
+  O: TRIAL My TSP - not for Production use
   CN: TRIAL My TSP - G4 PKIo Priv G-TLS SYS - 2025
-  O: My TSP - not for Production use
   organizationIdentifier: NTRNL-99999990
