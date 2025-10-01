@@ -3,6 +3,6 @@ profile: profiles/G4TRIALEEPrivGOtherLP2025.yaml
 subject:
   C: NL
   CN: TRIAL Bedrijfsnaam - Afdeling with OIN
-  O: Bedrijfsnaam
+  O: TRIAL Bedrijfsnaam
   organizationIdentifier: NTRNL-99999991  # KvK registration number
   serialNumber: 00000099999999910000      # KvK registration number prefixed with '00000003' and postfixed to become 20 digits

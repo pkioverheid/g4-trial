@@ -2,5 +2,5 @@
 profile: profiles/G4TRIALIntmPrivGOtherNP2024.yaml
 subject:
   C: NL
-  CN: TRIAL PKIoverheid - G4 Intm Priv G-Other NP - 2024
   O: TRIAL PKIoverheid - not for Production use
+  CN: TRIAL PKIoverheid - G4 Intm Priv G-Other NP - 2024

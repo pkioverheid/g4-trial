@@ -75,11 +75,12 @@ validations:
         CN:
           maxLength: 64
           minLength: 2
-          pattern: ^TRIAL .*
+          pattern: '^TRIAL '
           type: string
         O:
           maxLength: 64
           minLength: 2
+          pattern: '^TRIAL '
           type: string
         organizationIdentifier:
           pattern: ^NTRNL-[0-9]{8}$

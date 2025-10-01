@@ -67,7 +67,7 @@ validations:
         CN:
           maxLength: 64
           minLength: 5
-          pattern: ^TRIAL .*
+          pattern: '^TRIAL '
           type: string
         GN:
           maxLength: 64

@@ -2,7 +2,7 @@
 profile: profiles/G4TRIALEEPrivGTLSSYS2025.yaml
 subject:
   C: NL
-  O: Bedrijfsnaam
+  O: TRIAL Bedrijfsnaam
   CN: TRIAL Bedrijfsnaam
   organizationIdentifier: NTRNL-99999991  # This is the KvK Registration number in an ETSI format
 subjectAltNames:

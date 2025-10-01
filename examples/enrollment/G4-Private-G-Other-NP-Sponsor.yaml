@@ -4,7 +4,7 @@ subject:
   C: NL
   CN: TRIAL Pietje Puk
   GN: Pietje
-  O: Bedrijfsnaam B.V.
+  O: TRIAL Bedrijfsnaam B.V.
   SN: Puk
   organizationIdentifier: NTRNL-99999991  # KvK registration number
   serialNumber: abcdef1                   # Any (internal) unique serial number to identify this entity
