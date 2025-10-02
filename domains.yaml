@@ -16,13 +16,6 @@ domains:
         enrollment: enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
         revocations: revocations/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
 
-    endentity:
-      - label: Organization Validated
-        profile: profiles/G4TRIALEEPrivGTLSSYS2025.yaml
-
-      - label: Organization Validated including an OIN
-        profile: profiles/G4TRIALEEPrivGTLSSYS2025.yaml
-
   G4 Private Other Generic NP:
     hierarchy:
       - profile: profiles/G4TRIALRootPrivGOther2024.yaml
@@ -36,19 +29,6 @@ domains:
       - profile: profiles/G4TRIALPKIoPrivGOtherNP2025.yaml
         enrollment: enrollment/TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
         revocations: revocations/TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
-
-    endentity:
-      - label: Individual Validated
-        profile: profiles/G4TRIALEEPrivGOtherNP2025IndividualValidated.yaml
-
-      - label: Regulated Profession
-        profile: profiles/G4TRIALEEPrivGOtherNP2025RegulatedProfession.yaml
-
-      - label: Sponsor Validated
-        profile: profiles/G4TRIALEEPrivGOtherNP2025SponsorValidated.yaml
-
-      - label: Regulated Profession with Sponsor Validation
-        profile: profiles/G4TRIALEEPrivGOtherNP2025RegulatedProfessionwithSponsorValidation.yaml
 
   G4 Private Other Generic LP:
     hierarchy:
@@ -64,9 +44,30 @@ domains:
         enrollment: enrollment/TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml
         revocations: revocations/TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml
 
-    endentity:
-      - label: Organization identified
-        profile: profiles/G4TRIALEEPrivGOtherLP2025.yaml
+  G4 EUTL Signatures Generic Natural Persons:
+    hierarchy:
+      - profile: profiles/G4TRIALRootEUTLGSigs2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
 
-      - label: Organization identified including an OIN
-        profile: profiles/G4TRIALEEPrivGOtherLP2025.yaml
+      - profile: profiles/G4TRIALIntmEUTLGSigsNP2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsNP2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsNP2024.yaml
+
+      - profile: profiles/G4TRIALPKIoEUTLGSigsNP2025.yaml
+        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml
+        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml
+
+  G4 EUTL Signatures Generic Legal Persons:
+    hierarchy:
+      - profile: profiles/G4TRIALRootEUTLGSigs2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
+
+      - profile: profiles/G4TRIALIntmEUTLGSigsLP2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsLP2024.yaml
+        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsLP2024.yaml
+
+      - profile: profiles/G4TRIALPKIoEUTLGSigsLP2025.yaml
+        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsLP2025.yaml
+        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsLP2025.yaml

@@ -1,0 +1,117 @@
+---
+exponent: 65537 (0x10001)
+extensions:
+  authorityInfoAccess:
+    caIssuers: '%s/TRIALMyTSPG4PKIoEUTLGSigsNP2025.cer'
+    critical: false
+    oid: 1.3.6.1.5.5.7.1.1
+  authorityKeyIdentifier:
+    critical: false
+    oid: 2.5.29.35
+    value: match_issuer
+  basicConstraints:
+    cA: false
+    critical: true
+    oid: 2.5.29.19
+  cRLDistributionPoints:
+    critical: false
+    oid: 2.5.29.31
+    value:
+    - '%s/TRIALMyTSPG4PKIoEUTLGSigsNP2025.crl'
+  certificatePolicies:
+    critical: false
+    oid: 2.5.29.32
+    value:
+    - name: ncpplus
+      oid: 0.4.0.2042.1.2
+    - name: qcp-natural-qscd
+      oid: 0.4.0.194112.1.2
+    - name: id-pkio-cp-g4d-gen10EUTLSig-npInd-nonrep
+      oid: 2.16.528.1.1003.1.2.41.14.11.5
+  extendedKeyUsage:
+    critical: false
+    oid: 2.5.29.37
+    value:
+    - name: szOID_KP_DOCUMENT_SIGNING
+      oid: 1.3.6.1.4.1.311.10.3.12
+    - name: id-kp-documentSigning
+      oid: 1.3.6.1.5.5.7.3.36
+  keyUsage:
+    critical: true
+    oid: 2.5.29.15
+    value:
+    - nonRepudiation
+  qcStatements:
+    critical: false
+    oid: 1.3.6.1.5.5.7.1.3
+    value:
+    - name: id-etsi-qcs-QcCompliance
+      oid: 0.4.0.1862.1.1
+    - name: id-etsi-qcs-QcSSCD
+      oid: 0.4.0.1862.1.4
+    - name: id-etsi-qcs-QcType
+      oid: 0.4.0.1862.1.6
+      value: 0.4.0.1862.1.6.1 (id-etsi-qct-esign)
+    - name: id-etsi-qcs-QcPDS
+      oid: 0.4.0.1862.1.5
+      value:
+        language: '{0}'
+        url: '{0}'
+  subjectKeyIdentifier:
+    critical: false
+    oid: 2.5.29.14
+    value: RFC5280 - Method 1
+hashAlgorithm: sha512
+issuer: TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml
+maskAlgorithm: Mgf1 with sha512
+publicKeyAlgorithm: rsaEncryption
+publicKeyLength: 4096 bit
+saltLength: '0x40'
+serialNumber: Randomly generated (20 octets) -- Unique Positive Integer
+signatureAlgorithm: rsassaPss
+trailerField: 0x01 / 0xBC (default)
+validations:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  additionalProperties: false
+  properties:
+    profile:
+      type: string
+    subject:
+      additionalProperties: false
+      properties:
+        C:
+          pattern: ^[A-Z][A-Z]$
+          type: string
+        CN:
+          maxLength: 64
+          minLength: 5
+          pattern: '^TRIAL '
+          type: string
+        GN:
+          maxLength: 64
+          minLength: 2
+          type: string
+        SN:
+          maxLength: 64
+          minLength: 2
+          type: string
+        serialNumber:
+          maxLength: 64
+          minLength: 2
+          type: string
+      required:
+      - C
+      - CN
+      - GN
+      - SN
+      - serialNumber
+      type: object
+  required:
+  - profile
+  - subject
+  title: EUTL have a CN + Natural Persons
+  type: object
+validity:
+  notAfter: 397d
+  notBefore: now
+version: 3 (0x2)

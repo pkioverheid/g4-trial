@@ -1,0 +1,66 @@
+---
+exponent: 65537 (0x10001)
+extensions:
+  authorityKeyIdentifier:
+    critical: false
+    oid: 2.5.29.35
+    value: match_issuer
+  basicConstraints:
+    cA: true
+    critical: true
+    oid: 2.5.29.19
+  keyUsage:
+    critical: true
+    oid: 2.5.29.15
+    value:
+    - digitalSignature
+    - keyCertSign
+    - cRLSign
+  subjectKeyIdentifier:
+    critical: false
+    oid: 2.5.29.14
+    value: RFC5280 - Method 1
+hashAlgorithm: sha512
+issuer: TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
+maskAlgorithm: Mgf1 with sha512
+publicKeyAlgorithm: rsaEncryption
+publicKeyLength: 4096 bit
+saltLength: '0x40'
+serialNumber: Randomly generated (20 octets) -- Unique Positive Integer
+signatureAlgorithm: rsassaPss
+trailerField: 0x01 / 0xBC (default)
+validations:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  additionalProperties: false
+  properties:
+    profile:
+      type: string
+    subject:
+      additionalProperties: false
+      properties:
+        C:
+          const: NL
+          type: string
+        CN:
+          allOf:
+          - pattern: '^TRIAL PKIoverheid - '
+          - pattern: ' - G4 Root EUTL G-Sigs - 20[0-9][0-9](-[0-9]+)?$'
+          maxLength: 64
+          type: string
+        O:
+          const: TRIAL PKIoverheid - not for Production use
+          maxLength: 64
+          type: string
+      required:
+      - C
+      - CN
+      - O
+      type: object
+  required:
+  - profile
+  - subject
+  type: object
+validity:
+  notAfter: '2039-05-20T00:00:00'
+  notBefore: now
+version: 3 (0x2)
