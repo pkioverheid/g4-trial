@@ -2,7 +2,7 @@
 exponent: 65537 (0x10001)
 extensions:
   authorityInfoAccess:
-    caIssuers: '%s/TRIALPKIoverheidG4RootEUTLGSigs2024.cer'
+    caIssuers: '%(caIssuersBaseUrl)s/%(issuerBaseName)s.cer'
     critical: false
     oid: 1.3.6.1.5.5.7.1.1
   authorityKeyIdentifier:
@@ -17,7 +17,7 @@ extensions:
     critical: false
     oid: 2.5.29.31
     value:
-    - '%s/TRIALPKIoverheidG4RootEUTLGSigs2024.crl'
+    - '%(cRLDistributionPointsBaseUrl)s/%(issuerBaseName)s.crl'
   certificatePolicies:
     critical: false
     oid: 2.5.29.32
