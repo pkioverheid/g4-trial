@@ -43,7 +43,7 @@ extensions:
     critical: false
     oid: 1.3.6.1.5.5.7.1.3
     value:
-      name: id-qcs-pkixQCSyntax-v2
+    - name: id-qcs-pkixQCSyntax-v2
       oid: 1.3.6.1.5.5.7.11.2
       value: 0.4.0.194121.1.2 (id-etsi-qcs-SemanticsId-Legal)
   subjectKeyIdentifier:
@@ -82,9 +82,11 @@ validations:
           pattern: '^TRIAL '
           type: string
         organizationIdentifier:
+          allOf:
+          - pattern: ^NTRNL-[0-9]{8}$
+          - pattern: ^(VAT|NTR|PSD|LEI)[A-Z][A-Z]-[A-Z0-9]+$
           maxLength: 64
           minLength: 2
-          pattern: ^NTRNL-[0-9]{8}$
           type: string
         serialNumber:
           maxLength: 64
@@ -99,7 +101,8 @@ validations:
   required:
   - profile
   - subject
-  title: Private Other have a CN + Legal Persons + Organization Validation
+  title: Private Other have a CN + Legal Persons + Organization Validation + Conformance
+    to ETSI EN 319 412-1 Section 5.1.4
   type: object
 validity:
   notAfter: 397d
