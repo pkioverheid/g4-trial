@@ -167,10 +167,12 @@ def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issue
     logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {as_name(issuer['subject']).rfc4514_string()}")
 
     # Replace placeholders with actual values
+    replacements = config.copy()
+    replacements['issuerBaseName'] = issuer_keys.basename
     if keys_exist(profile, ['extensions', 'authorityInfoAccess', 'caIssuers']):
-        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess']['caIssuers'] % config['caIssuersBaseUrl']
+        profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess']['caIssuers'] % replacements
     if keys_exist(profile, ['extensions', 'cRLDistributionPoints', 'value']):
-        profile['extensions']['cRLDistributionPoints']['value'] = [value % config['cRLDistributionPointsBaseUrl'] for value in profile['extensions']['cRLDistributionPoints']['value']]
+        profile['extensions']['cRLDistributionPoints']['value'] = [value % replacements for value in profile['extensions']['cRLDistributionPoints']['value']]
 
     # Validity
     if isinstance(profile['validity']['notBefore'], datetime):
