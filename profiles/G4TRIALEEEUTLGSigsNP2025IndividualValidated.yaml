@@ -22,36 +22,47 @@ extensions:
     critical: false
     oid: 2.5.29.32
     value:
-    - name: ncp
-      oid: 0.4.0.2042.1.1
     - name: ncpplus
       oid: 0.4.0.2042.1.2
-    - name: id-pkio-cp-g4d-gen10PrvOth-npRPSp-authon
-      oid: 2.16.528.1.1003.1.2.41.16.14.8
+    - name: qcp-natural-qscd
+      oid: 0.4.0.194112.1.2
+    - name: id-pkio-cp-g4d-gen10EUTLSig-npInd-nonrep
+      oid: 2.16.528.1.1003.1.2.41.14.11.5
   extendedKeyUsage:
     critical: false
     oid: 2.5.29.37
     value:
-    - name: id-kp-clientAuth
-      oid: 1.3.6.1.5.5.7.3.2
+    - name: szOID_KP_DOCUMENT_SIGNING
+      oid: 1.3.6.1.4.1.311.10.3.12
+    - name: id-kp-documentSigning
+      oid: 1.3.6.1.5.5.7.3.36
   keyUsage:
     critical: true
     oid: 2.5.29.15
     value:
-    - digitalSignature
+    - nonRepudiation
   qcStatements:
     critical: false
     oid: 1.3.6.1.5.5.7.1.3
     value:
-    - name: id-qcs-pkixQCSyntax-v2
-      oid: 1.3.6.1.5.5.7.11.2
-      value: 0.4.0.194121.1.2 (id-etsi-qcs-SemanticsId-Legal)
+    - name: id-etsi-qcs-QcCompliance
+      oid: 0.4.0.1862.1.1
+    - name: id-etsi-qcs-QcSSCD
+      oid: 0.4.0.1862.1.4
+    - name: id-etsi-qcs-QcType
+      oid: 0.4.0.1862.1.6
+      value: 0.4.0.1862.1.6.1 (id-etsi-qct-esign)
+    - name: id-etsi-qcs-QcPDS
+      oid: 0.4.0.1862.1.5
+      value:
+        language: '{0}'
+        url: '{0}'
   subjectKeyIdentifier:
     critical: false
     oid: 2.5.29.14
     value: RFC5280 - Method 1
 hashAlgorithm: sha512
-issuer: TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
+issuer: TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
 publicKeyLength: 4096 bit
@@ -80,25 +91,11 @@ validations:
           maxLength: 64
           minLength: 2
           type: string
-        O:
-          maxLength: 64
-          minLength: 2
-          pattern: '^TRIAL '
-          type: string
         SN:
           maxLength: 64
           minLength: 2
           type: string
-        organizationIdentifier:
-          allOf:
-          - pattern: ^NTRNL-[0-9]{8}$
-          - pattern: ^(VAT|NTR|PSD|LEI)[A-Z][A-Z]-[A-Z0-9]+$
-          type: string
         serialNumber:
-          maxLength: 64
-          minLength: 2
-          type: string
-        title:
           maxLength: 64
           minLength: 2
           type: string
@@ -106,17 +103,13 @@ validations:
       - C
       - CN
       - GN
-      - O
       - SN
-      - organizationIdentifier
       - serialNumber
-      - title
       type: object
   required:
   - profile
   - subject
-  title: Private Other have a CN + Natural Persons + Regulated Profession with Sponsor
-    validated + Conformance to ETSI EN 319 412-1 Section 5.1.4
+  title: EUTL have a CN + Natural Persons
   type: object
 validity:
   notAfter: 397d

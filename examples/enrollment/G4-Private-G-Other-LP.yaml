@@ -2,6 +2,6 @@
 profile: profiles/G4TRIALEEPrivGOtherLP2025.yaml
 subject:
   C: NL
-  CN: TRIAL Bedrijfsnaam - Afdeling
-  O: TRIAL Bedrijfsnaam
+  CN: TRIAL Company name
+  O: TRIAL Company name
   organizationIdentifier: NTRNL-99999991  # KvK registration number

@@ -48,7 +48,7 @@ extensions:
     critical: false
     oid: 1.3.6.1.5.5.7.1.3
     value:
-      name: id-qcs-pkixQCSyntax-v2
+    - name: id-qcs-pkixQCSyntax-v2
       oid: 1.3.6.1.5.5.7.11.2
       value: 0.4.0.194121.1.2 (id-etsi-qcs-SemanticsId-Legal)
   subjectKeyIdentifier:
@@ -87,7 +87,9 @@ validations:
           pattern: ^TRIAL .* - not for Production use
           type: string
         organizationIdentifier:
-          pattern: ^NTRNL-[0-9]{8}$
+          allOf:
+          - pattern: ^NTRNL-[0-9]{8}$
+          - pattern: ^(VAT|NTR|PSD|LEI)[A-Z][A-Z]-[A-Z0-9]+$
           type: string
       required:
       - C
@@ -98,6 +100,7 @@ validations:
   required:
   - profile
   - subject
+  title: Conformance to ETSI EN 319 412-1 Section 5.1.4
   type: object
 validity:
   notAfter: issuer-1d

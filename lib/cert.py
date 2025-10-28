@@ -3,13 +3,14 @@ import os
 import re
 from datetime import datetime, timedelta, UTC
 
-from asn1crypto.core import Sequence, ObjectIdentifier as Asn1OID, SequenceOf
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import UnrecognizedExtension
+
 from cryptography.x509.oid import ObjectIdentifier
 
+from .qc_statements import build_qc_statements_extension
 from .dn import as_name, generate_basename
 from .events import log_issued_cert
 from .keypair import KeyPair, get_hash_algo
@@ -23,41 +24,7 @@ class IssuerNotFoundError(Exception):
     pass
 
 
-def build_qc_statements_extension(qc_data):
-    """
-    Encodes a single QCStatement with a statementId and statementInfo (OID).
-    """
-
-    class SemanticsInformation(Sequence):
-        _fields = [
-            ('semanticsIdentifier', Asn1OID)
-        ]
-
-    class QCStatement(Sequence):
-        _fields = [
-            ('statementId', Asn1OID),
-            ('statementInfo', SemanticsInformation)
-        ]
-
-    class QCStatements(SequenceOf):
-        _child_spec = QCStatement
-
-    semantics_oid = qc_data['value']['value'].split()[0]  # Strip description
-    qc = QCStatements([
-        QCStatement({
-            'statementId': qc_data['value']['oid'],
-            'statementInfo': SemanticsInformation({'semanticsIdentifier': semantics_oid})
-        })
-    ])
-
-    # Return as UnrecognizedExtension to include it
-    return UnrecognizedExtension(
-        ObjectIdentifier('1.3.6.1.5.5.7.1.3'),  # id-pe-qcStatements
-        qc.dump()
-    )
-
-
-def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
+def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys, config):
     if 'basicConstraints' in ext:
         builder = builder.add_extension(
             x509.BasicConstraints(
@@ -109,7 +76,10 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys):
         )
 
     if 'qcStatements' in ext:
-        qc_ext = build_qc_statements_extension(ext['qcStatements'])
+        qc_ext = UnrecognizedExtension(
+            ObjectIdentifier(ext['qcStatements']['oid']),  # id-pe-qcStatements
+            build_qc_statements_extension(ext['qcStatements'], config)
+        )
         builder = builder.add_extension(qc_ext, critical=ext['qcStatements'].get('critical', False))
 
     if 'cRLDistributionPoints' in ext:
@@ -216,7 +186,7 @@ def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issue
     builder = builder.not_valid_after(not_after)
 
     # Build Extensions
-    builder = handle_extensions(builder, profile['extensions'], enrollment, subject_keys, issuer_keys)
+    builder = handle_extensions(builder, profile['extensions'], enrollment, subject_keys, issuer_keys, config)
 
     # Sign certificate
     cert = builder.sign(

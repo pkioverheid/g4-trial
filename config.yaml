@@ -1,3 +1,6 @@
 caIssuersBaseUrl: http://cert.pkioverheid.nl
 cRLDistributionPointsBaseUrl: http://crl.pkioverheid.nl
 crlRenewalHours: 48
+pdsLocation:
+  url: https://www.github.com/pkioverheid/g4-trial
+  language: en
