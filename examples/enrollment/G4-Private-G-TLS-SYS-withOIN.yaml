@@ -2,8 +2,8 @@
 profile: profiles/G4TRIALEEPrivGTLSSYS2025.yaml
 subject:
   C: NL
-  O: TRIAL Bedrijfsnaam
-  CN: TRIAL Bedrijfsnaam
+  O: TRIAL Company name
+  CN: TRIAL Company name
   organizationIdentifier: NTRNL-99999991  # This is the KvK Registration number in an ETSI format
   serialNumber: 00000099999999910000  # OIN, please see https://logius-standaarden.github.io/OIN-Stelsel/#prefix-tabel
 subjectAltNames:
