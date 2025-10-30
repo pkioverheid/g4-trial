@@ -8,13 +8,14 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound, DNSName
 from jschon import create_catalog, JSON, JSONSchema
 
-from lib.cert import sign, IssuerNotFoundError
+from lib.cert import sign
+from lib.csr import verify
 from lib.dn import generate_basename
+from lib.events import log_issued_cert
 from lib.keypair import KeyPair
 from lib.names import as_dict
 from lib.ra import validate
 from lib.util import load_yaml
-
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("sign-cert")
@@ -46,6 +47,7 @@ def find_profile(enrollment: dict) -> str:
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--issuer-password', action="store", help="Password to decrypt issuer's private key")
     parser.add_argument('csrs', nargs='+', help="CSRs to process")
 
     group = parser.add_mutually_exclusive_group()
@@ -64,7 +66,9 @@ if __name__ == "__main__":
         with open(csrfile, "rb") as f:
             csr = load_pem_x509_csr(f.read())
 
-        # TODO: Verify technically the CSR
+        if not verify(csr):
+            logger.fatal(f"{csrfile} signature is invalid, skipping ❌")
+            exit(1)
 
         if args.enrollment:
             # Use provided enrollment file
@@ -95,7 +99,7 @@ if __name__ == "__main__":
         issuer_profile = load_yaml(os.path.join('enrollment', subject_profile['issuer']))
         issuer_keys = KeyPair(generate_basename(issuer_profile['subject']))
         try:
-            issuer_keys.load()
+            issuer_keys.load(password=args.issuer_password)
         except FileNotFoundError as e:
             logger.fatal(f"Cannot find keys of {issuer_keys} for signing operation, please generate it first")
             exit(1)
@@ -106,5 +110,7 @@ if __name__ == "__main__":
         filename = subject_keys.certificatefile
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
+
+        log_issued_cert(cert)
 
         logger.info(f"Certificate issued and saved to {filename}")
