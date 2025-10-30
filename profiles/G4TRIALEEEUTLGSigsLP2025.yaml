@@ -103,8 +103,16 @@ validations:
           minLength: 2
           type: string
         serialNumber:
+          allOf:
+          - pattern: ^[A-Za-z0-9 '()+,\-./:=?]*$
+          if:
+            maxLength: 20
+            minLength: 20
           maxLength: 64
           minLength: 2
+          then:
+            allOf:
+            - pattern: ^00000099[0-9]{9}000$
           type: string
       required:
       - C

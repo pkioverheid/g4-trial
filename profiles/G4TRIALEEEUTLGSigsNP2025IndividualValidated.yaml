@@ -98,6 +98,7 @@ validations:
         serialNumber:
           maxLength: 64
           minLength: 2
+          pattern: ^[A-Za-z0-9 '()+,\-./:=?]*$
           type: string
       required:
       - C
