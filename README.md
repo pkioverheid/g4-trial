@@ -74,6 +74,8 @@ Currently, only the following [G4 Domains](https://cp.pkioverheid.nl/pkioverheid
 - G4 Private TLS Generic Devices
 - G4 Private Other Generic Natural Persons
 - G4 Private Other Generic Legal Persons
+- G4 EUTL Signatures Generic Natural Persons
+- G4 EUTL Signatures Generic Legal Persons
 
 If you require any other G4 Domain, please open a Github issue in this repository. 
 
@@ -106,6 +108,8 @@ This method allows you to create certificates operable with other providers.
    - G4 Private TLS Generic Devices: `TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml`
    - G4 Private Other Generic Natural Persons: `TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml`
    - G4 Private Other Generic Legal Persons: `TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml`
+   - G4 EUTL Signatures Generic Natural Persons: `TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml`
+   - G4 EUTL Signatures Generic Legal Persons: `TRIALMyTSPG4PKIoEUTLGSigsLP2025.yaml`
 3. Generate the Certificate Signing Requests (CSR) by running the command below and providing the files you edited:
    ```bash
    python create-csr.py <enrollment files>
@@ -124,7 +128,7 @@ cRLDistributionPointsBaseUrl: http://localhost:8080/crl
 crlRenewalHours: 48
 ```
 
-Then create the top three layers of the CA hierarchy for a [G4 Domain](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview). These are the self-signed Root CA, Domain CA and Issuing (TSP) CA. This command will prompt which for which PKIoverheid G4 domain you'd like to create the private key, certificate and its (empty) Certificate Revocation List (CSR). 
+Then create the top three layers of the CA hierarchy for a [G4 Domain](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview). These are the self-signed Root CA, Domain CA and Issuing (TSP) CA. This command will prompt which for which PKIoverheid G4 domain you'd like to create private keys, certificates and their (empty) Certificate Revocation Lists (CRL). 
 
 ```bash
 python create-ca.py
@@ -134,7 +138,23 @@ python create-ca.py
 
 Each end entity certificate requires subject information to be provided separately from the certificate profile. This information is provided using either an "enrollment" YAML file or a Certificate Signing Request (CSR). Please see any of the files in the `examples/enrollment` directory. The filename will indicate the certificate type. Please see the "G1/G3 to G4 mapping table" on the logius.nl website for information which certificate type you need for your use case. 
 
-### Generate key pairs by the fauxTSP
+If you modified the filename of the TSP CA enrollment file in previous steps, for example renaming "MyTSP" to  "MyOrganization", you will need to modify the end entity certificate profiles accordingly since it contains a reference to this file. Below is an example how to modify `G4TRIALEEPrivGTLSSYS2025.yaml`:
+
+Old (snippet): 
+```yaml
+...
+issuer: TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
+...
+```
+
+New (snippet):
+```yaml
+...
+issuer: TRIALMyOrganizationG4PKIoPrivGTLSSYS2025.yaml
+...
+```
+
+### FauxTSP generates key pairs 
 
 When enrollment files are used, the fauxTSP generates the keypair and provides them to the subscriber. Enrollment files will need to be modified for your own use cases. An example enrollment file would be:
 
@@ -238,16 +258,18 @@ The parameter `crlRenewalHours` indicates the lifespan of a CRL, i.e. the differ
 
 # File list
 
-| Filename           | Description                                                             |
-|--------------------|-------------------------------------------------------------------------|
-| `create_ca.py`     | Script to create the top level CA private keys and certificates         |
-| `generate-cert.py` | Script to create any number of end entity private keys and certificates |
-| `generate-crl.py`  | Script to create CRLs for a CA                                          |
-| `start_server.sh`  | A minimal webserver to host generated certificates and CRLs             |
-| `ca/private/*.key` | Generated private keys                                                  |
-| `ca/certs/*.pem`   | Issued certificates                                                     |
-| `ca/crl/*.crl`     | CRLs for the generated CA certificates                                  |
-| `examples`         | Example files to create end entity certificates and revocation lists    |
+| Filename           | Description                                                                   |
+|--------------------|-------------------------------------------------------------------------------|
+| `create_ca.py`     | Script to create the top level CA private keys and certificates               |
+| `create_csr.py`    | Script to create a Certificate Signing Request to be signed by another entity |
+| `generate-cert.py` | Script to create any number of end entity private keys and certificates       |
+| `generate-crl.py`  | Script to create CRLs for a CA                                                |
+| `sign-cert.py`     | Signs a certificate based upon a previously generated CSR                     |
+| `start_server.sh`  | A minimal webserver to host generated certificates and CRLs                   |
+| `ca/private/*.key` | Generated private keys                                                        |
+| `ca/certs/*.pem`   | Issued certificates                                                           |
+| `ca/crl/*.crl`     | CRLs for the generated CA certificates                                        |
+| `examples`         | Example files to create end entity certificates and revocation lists          |
 
 # Requirements
 
