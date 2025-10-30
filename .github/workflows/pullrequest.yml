@@ -208,9 +208,11 @@ jobs:
           echo 1 | python create-ca.py
           echo 2 | python create-ca.py
           echo 3 | python create-ca.py
+          echo 4 | python create-ca.py
+          echo 5 | python create-ca.py
 
       - name: Issue examples
-        run: find examples/enrollment -name "*.yaml" -exec python generate-cert.py {} \;
+        run: find examples/enrollment -name "*.yaml" -exec bash -c 'for n; do python generate-cert.py "${n}" || exit 1; done ' sh {} +
 
   use-passwords:
     name: Use password encrypted private keys
