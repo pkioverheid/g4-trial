@@ -47,6 +47,7 @@ def find_profile(enrollment: dict) -> str:
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--issuer-password', action="store", help="Password to decrypt issuer's private key")
     parser.add_argument('csrs', nargs='+', help="CSRs to process")
 
     group = parser.add_mutually_exclusive_group()
@@ -98,7 +99,7 @@ if __name__ == "__main__":
         issuer_profile = load_yaml(os.path.join('enrollment', subject_profile['issuer']))
         issuer_keys = KeyPair(generate_basename(issuer_profile['subject']))
         try:
-            issuer_keys.load()
+            issuer_keys.load(password=args.issuer_password)
         except FileNotFoundError as e:
             logger.fatal(f"Cannot find keys of {issuer_keys} for signing operation, please generate it first")
             exit(1)
