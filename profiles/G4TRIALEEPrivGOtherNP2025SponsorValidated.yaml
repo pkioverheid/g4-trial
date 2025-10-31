@@ -54,7 +54,7 @@ hashAlgorithm: sha512
 issuer: TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
-publicKeyLength: 4096 bit
+publicKeyLength: 3072 bit
 saltLength: '0x40'
 serialNumber: Randomly generated (20 octets) -- Unique Positive Integer
 signatureAlgorithm: rsassaPss
