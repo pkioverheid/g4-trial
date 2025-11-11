@@ -11,13 +11,14 @@
 
 # Overview
 
-This is version 2 of the G4 TRIAL tool. Version 1 can be found at https://github.com/pkioverheid/g4-trial/tree/v1.0. 
+This tool allows you to generate TRIAL (test) certificates for the PKIoverheid G4 hierarchies yourself. It generates a complete hierarchy of certificates resembling a chosen G4 hierarchy. For more information on these hierarchies, please refer to the [PKIoverheid CPS, Section 1.1](https://cps.pkioverheid.nl/pkioverheid-cps-unified-v5.4.html#id__11-overview).
 
-This tool allows you to generate TRIAL (test) certificates for the PKIoverheid G4 hierarchies yourself. It generates a complete hierarchy of certificates resembling a chosen G4 hierarchy. For more information on these hierarchies, please refer to the [PKIoverheid CPS, Section 1.1](https://cps.pkioverheid.nl/pkioverheid-cps-unified-v5.4.html#id__11-overview). 
+The tooling can be used in several different ways:
 
-Alternatively you can issue certificates using the TRIAL hierarchy setup by Logius used for integration testen ("ketentesten"). 
-
-Use these certificates to test your own and relying party's readiness for the production PKIoverheid G4 certificates issued by PKIoverheid TSPs.  
+* To validate your own (local) technical setup, download this repository and create the full hierarchies yourself;
+* To use G4 TRIAL certificates for integration testen ("ketentesten") there are two options:
+  1. If you need just a few G4 TRIAL certificates, some organisations issue G4 TRIAL certificates for free, see the list at <https://cert.pkioverheid.nl>. 
+  2. If you intend to issue many TRIAL certificates (perhaps to suppliers) you may request a "fauxTSP" CA certificate for the common G4 TRIAL hierarchies. Please contact us to discuss in detail.    
 
 For the G3 certificate hierarchy some PKIoverheid TSPs offer TRIAL certificates. However, the G4 hierarchies consists of many different types of certificates, increasing implementation costs for TSPs. Therefore it was deemed most effective for users to be able to generate their own test certificates using a publicly available tool.
 
@@ -30,14 +31,14 @@ Software developers creating applications either using PKIoverheid certificates,
 There have been a number of changes from G3 to G4, which you need to be aware of. In depth technical changes are described in the [PKIoverheid CPS](https://cps.pkioverheid.nl) and [Certificate Policy/Programme of Requirements PKIoverheid](https://cp.pkioverheid.nl/), while the functional changes are:  
 
 - Instead of one certificate public root (G3) and one private root (G1), the PKIoverheid G4 consists of multiple Certificate Roots, depending on its trust type (Public, Mandated (eIDAS) and Private). Since Privately trusted roots may be used separately within a specific domain, several Privately trusted Certificate Roots are created. Relying parties should only trust the appropriate Certificate Roots. Please see [https://cert.pkioverheid.nl/](https://cert.pkioverheid.nl/) for details;
-- Many more certificate types are available for the G4 than G3, the certificate Common Names reflect this accordingly;
+- Many more certificate types are available for the G4 than G3, the certificate issuers' Common Names reflect this accordingly;
 - Intermediate CAs are based upon Subject Type (Natural Persons, Legal Entities or Devices), rather than a validation type, for example the G3's "Organisatie Persoon";
 - No OCSP Service is offered for any of the G4 Root, Domain and TSP certificates. TSPs may still implement OCSP Services if desired;
 - G3 certificates used a limited number of Policy OIDs, this has been expanded significantly for the G4. This allows the relying party to pinpoint exactly which type of certificate and validation was performed; 
 - G4 makes a distinction between Authenticity and Authentication certificates, while G3 only defined Authenticity for both use cases. Confidentiality and Authenticity usages for certificates are deemed an edge case and is disabled by default in the G4 TRIAL;
 - Previously two variants existed of G1 Private Services Server certificate (OID: 2.16.528.1.1003.1.2.8.6). One containing one or more domain names and one without. This has been changed in G4. A "G4 Private Other Generic Legal Persons Organization Validated Authentication" does not contain any domains and is used only for `clientAuth`. A "G4 Private TLS Generic Devices Organization Validated Server" contains one or more domains and can be used for both `clientAuth` and `serverAuth`. 
-- G3 certificates were allowed to have IP addresses as Subject Alternate Names. The G4 prohibits this.  
-- Signature algorithm `RSASSA‐PKCS1‐v1_5` has been designated as legacy by the SOG-IS Crypto Evaluation Scheme and is replaced by `RSASSA-PSS`. This algorithm is used for certificates and CRLs. 
+- G3 certificates were allowed to have IP addresses as Subject Alternate Names (SAN). The G4 prohibits this.  
+- Signature algorithm `RSASSA‐PKCS1‐v1_5` has been designated as legacy by the [ECCG Agreed Cryptographic Mechanisms Guideline](https://certification.enisa.europa.eu/publications/eucc-guidelines-cryptography_en) and is replaced by `RSASSA-PSS`. This algorithm is used for Certificate Signing Requests (CSR), certificates and CRLs. This may have an impact if TLS 1.2 is used. 
 
 # Certificate profiles
 
@@ -56,13 +57,13 @@ Please be aware certificates generated by this tooling differ from their product
 
 - There is no Certificate Policy document and as such **these certificates provide no trust whatsoever**.
 - **Serial Numbers** are not generated using a CSPRNG.
-- **Issuer** and **Subject** fields do not mention "Staat der Nederlanden" or any of the participating TSPs. Instead, "TRIAL PKIoverheid" and "My TSP" are used. Nevertheless, relying parties should not rely on Subject and Issuer for trust. 
+- **Issuer** and **Subject** fields do not mention "Staat der Nederlanden" or any of the participating TSPs. Instead, "TRIAL PKIoverheid", "My TSP" and/or the name of a fauxTSP are used. Nevertheless, relying parties should not rely on Subject and Issuer for trust. 
 - **Validity** range for end entity certificates defaults to 397 days, which may be different from production certificates;
 - **Policy Identifiers** are defined by the [differentation model](https://oid.pkioverheid.nl/) and differ slightly between TRIAL and Production, for example:
     | Certificate type                      | TRIAL                               | Production                          |
     |---------------------------------------|-------------------------------------|-------------------------------------|
     | System Organization Validation Server | `2.16.528.1.1003.1.2.*41*.15.39.11` | `2.16.528.1.1003.1.2.*44*.15.39.11` | 
-- The TRIAL certificate profiles must be indicative of their production counterparts, as such any required qcStatements for production certificates are also included in TRIAL certificates, even if they're false. For example, certificates may claim the private key resides on a Secure Signature Creation Device (SSCD) as indicated by the `qcStatement` `id-etsi-qcs-QcSSCD`, which is obviously false. 
+- TRIAL certificate profiles must be indicative of their production counterparts, as such any required qcStatements for production certificates are also included in TRIAL certificates, even if they're undoubtedly false. For example, certificates may claim the private key resides on a Secure Signature Creation Device (SSCD) as indicated by the `qcStatement` `id-etsi-qcs-QcSSCD`, which is obviously false for test certificates. 
 - There may be some minor (non-security) differences between these TRIAL certificates and certificates offered by the different PKIoverheid TSPs. Most notably the value of the `subject.commonName` field and the ASN.1 encoding of some `subject` fields may be different. 
 
 # Limitations
@@ -92,53 +93,73 @@ If you require any other G4 Domain, please open a Github issue in this repositor
    pip install -r requirements.txt
    ```
 
+## Quick start
+
+This repository contains examples which allow you a quick look at G4 certificates. 
+
+The following commands will create a G4 TRIAL hierarchy for private TLS and one end entity certificate to secure a TLS endpoint.
+
+```bash
+echo 1 | python create-ca.py
+python generate-cert.py examples/enrollment/G4-Private-G-TLS-SYS-withOIN.yaml
+```
+
+Private keys are placed in the `ca/private` directory and certificates are placed into the `ca/certs`. 
+
 ## Initialization
 
 There are two methods to initialise:
 
-* By joining the shared TRIAL hierarchy setup by Logius (recommended), or
-* By creating your own personal hierarchy. 
+1. By creating your own hierarchy (recommended for personal and isolated testing), or
+2. By joining the shared TRIAL hierarchy setup by Logius (recommended for integration testing).
 
-### Joining the shared TRIAL hierarchy (recommended)
+### Option 1: Create your own hierarchy/hierarchies
 
-This method allows you to create certificates operable with other providers. 
+1. If you ran the Quick start, remove the `ca` directory to start fresh.  
+2. Update the URLs where issuing certificates and CRLs will be located after the initialization is complete. The example `config.yaml` below allows you to host these files on your local machine, but you may host these files on your internal network for internal testing. 
+   ```yaml
+   caIssuersBaseUrl: http://localhost:8080/certs
+   cRLDistributionPointsBaseUrl: http://localhost:8080/crl
+   crlRenewalHours: 48
+   ```
+3. Create the top three layers of the CA hierarchy for one or more [G4 Domains](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview). These are the self-signed Root CA, Domain CA and Issuing (fauxTSP) CA. This command will prompt which for which PKIoverheid G4 domain you'd like to create private keys, certificates and their (empty) Certificate Revocation Lists (CRL). 
+   ```bash
+   python create-ca.py
+   ```
 
-1. Determine for which domains you'd like to issue certificates;
-2. Edit the appropriate enrollments files in this repository. Replace the string "My TSP" with your organization name. 
-   - G4 Private TLS Generic Devices: `TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml`
-   - G4 Private Other Generic Natural Persons: `TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml`
-   - G4 Private Other Generic Legal Persons: `TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml`
-   - G4 EUTL Signatures Generic Natural Persons: `TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml`
-   - G4 EUTL Signatures Generic Legal Persons: `TRIALMyTSPG4PKIoEUTLGSigsLP2025.yaml`
-3. Generate the Certificate Signing Requests (CSR) by running the command below and providing the files you edited:
+### Option 2: Joining the shared TRIAL hierarchy
+
+If you wish to join one or more shared TRIAL hierarchies, please reach out to us at <pkioverheid@logius.nl> so we can discuss the required steps.
+
+This method allows you to create certificates operable with other providers of G4 TRIAL certificates.
+
+1. Determine for which domains you'd like to issue G4 TRIAL certificates;
+2. Locate the respective enrollment file in the `enrollment` directory:
+    - G4 Private TLS Generic Devices: `TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml`
+    - G4 Private Other Generic Natural Persons: `TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml`
+    - G4 Private Other Generic Legal Persons: `TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml`
+    - G4 EUTL Signatures Generic Natural Persons: `TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml`
+    - G4 EUTL Signatures Generic Legal Persons: `TRIALMyTSPG4PKIoEUTLGSigsLP2025.yaml`
+3. Rename the enrollment file to replace "MyTSP" with your organization's name (letters only, no spaces), for example `TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml` would be renamed to `TRIALMyOrganizationG4PKIoPrivGTLSSYS2025.yaml`. This filename will be used to name the private key file and Certificate Signing Request (CSR) and must be unique within the `ca` and `enrollment` directory.
+4. Within the enrollment file, replace any occurrence of the string "My TSP" with your organization name (including spaces), for example "My Organization".
+5. Generate the Certificate Signing Requests (CSR) by running the command below and providing the files you edited:
    ```bash
    python create-csr.py <enrollment files>
    ```
-   Your enrollment will be validated, and when successful a private key and a CSR file will be created. 
-4. Send the CSR files to pkioverheid@logius.nl;
-5. PKIoverheid will reach out to you and send your certificate;
-6. Place this file into the directory `ca/certs/`
-
-### Create your own personal hierarchy
-
-First update the URLs where issuing certificates and CRLs can be found. The example `config.yaml` below allows you to host these files on your local machine. 
-```yaml
-caIssuersBaseUrl: http://localhost:8080/certs
-cRLDistributionPointsBaseUrl: http://localhost:8080/crl
-crlRenewalHours: 48
-```
-
-Then create the top three layers of the CA hierarchy for a [G4 Domain](https://cp.pkioverheid.nl/pkioverheid-por-v5.1.html#id__11-overview). These are the self-signed Root CA, Domain CA and Issuing (TSP) CA. This command will prompt which for which PKIoverheid G4 domain you'd like to create private keys, certificates and their (empty) Certificate Revocation Lists (CRL). 
-
-```bash
-python create-ca.py
-```
+   Your enrollment will be validated, and when successful a private key and a CSR file will be created. The private key will be located within the `ca/private` directory while the CSR will be saved to the current directory.
+6. Send the CSR files to pkioverheid@logius.nl;
+7. PKIoverheid will reach out to you, discuss details and send your certificate(s);
+8. Place the certificate file(s) into the directory `ca/certs/`
+9. Generate a boilerplate revocation file (which currently does not exist) and generate the first CRL for your certificate:
+   ```bash
+   python generate-crl.py -f revocations/<enrollment filename>
+   ```
 
 ## Create end entity certificates
 
 Each end entity certificate requires subject information to be provided separately from the certificate profile. This information is provided using either an "enrollment" YAML file or a Certificate Signing Request (CSR). Please see any of the files in the `examples/enrollment` directory. The filename will indicate the certificate type. Please see the "G1/G3 to G4 mapping table" on the logius.nl website for information which certificate type you need for your use case. 
 
-If you modified the filename of the TSP CA enrollment file in previous steps, for example renaming "MyTSP" to  "MyOrganization", you will need to modify the end entity certificate profiles accordingly since it contains a reference to this file. Below is an example how to modify `G4TRIALEEPrivGTLSSYS2025.yaml`:
+If you modified the filename of the TSP CA enrollment file in previous steps, for example renaming "MyTSP" to  "MyOrganization", you will need to modify the end entity certificate profiles accordingly since it contains a reference to this file. Below is an example how to modify the file for the G4 Private TLS Generic Devices end entity certificate profile specified in `G4TRIALEEPrivGTLSSYS2025.yaml`:
 
 Old (snippet): 
 ```yaml
@@ -154,9 +175,9 @@ issuer: TRIALMyOrganizationG4PKIoPrivGTLSSYS2025.yaml
 ...
 ```
 
-### FauxTSP generates key pairs 
+### Option 1: FauxTSP generates key pairs 
 
-When enrollment files are used, the fauxTSP generates the keypair and provides them to the subscriber. Enrollment files will need to be modified for your own use cases. An example enrollment file would be:
+When enrollment files are used, the fauxTSP generates the keypair and provides them to the subscriber. Enrollment files will need to be modified for your own use cases. An example enrollment file for G4 Private TLS Generic Devices could be:
 
 ```yaml
 ---
@@ -166,28 +187,23 @@ subject:
   CN: Bedrijfsnaam TLS
   O: Bedrijfsnaam
   organizationIdentifier: NTRNL-99999991
+  serialNumber: 00000099123456789000
 subjectAltNames:
   - example.com
   - www.example.com
 ```
 
-The file indicates which certificate profile is to be used, provides `subject` information and (in this case) two FQDNs to be included in the certificate. For each end entity certificate you want to create, copy the enrollment file and modify it according to your needs. Then run:
+The file indicates which certificate profile is to be used, provides `subject` information and (in this case) two FQDNs to be included in the certificate. This example uses both a KvK registration number in the `organizationIdentifier` field and a test OIN indicated by the `00000099` prefix in the `serialNumber` field. For each end entity certificate you want to create, create an appropriate enrollment file with an unique filename and modify it according to your needs. Then run:
 
 ```bash
 python generate-cert.py <one or more enrollment files>
 ```
 
-Example enrollment files can be used directly, e.g. the following command will create an end entity certificate to secure a TLS endpoint.
-
-```bash
-python generate-cert.py examples/enrollment/G4-Private-G-TLS-SYS-WithOrganizationIdentifier.yaml
-```
-
 Prior to generating the certificate, the script will validate your enrollment file against the requirements for the selected certificate profile and output any discrepancies. Please note that no validations are performed on the actual contents of each attribute, please refer to the documents listed under [Certificate Profiles](#certificate-profiles) to determine what information should be included in each field. 
 
-The filenames of the newly generated private and public keys will match the filename of the enrollment file. They will be placed in the `ca/private` and the `ca/certs` directories. The command will not overwrite any preexisting files. 
+The filenames of the newly generated private and public keys will match the filename of the enrollment file. They will be placed in the `ca/private` and the `ca/certs` directories, respectively. The command will not overwrite any preexisting files to prevent destruction of private keys. 
 
-### Subscriber provides public key using a Certificate Signing Request (CSR)
+### Option 2: Subscriber provides public key using a Certificate Signing Request (CSR)
 
 A Subscriber usually generates a key pair themselves, encapsulates the public key alongside `subject` and `subjectAlternateNames` information into a PKCS #10 CSR. To generate the certificate using the default settings, run:    
 
@@ -197,11 +213,11 @@ python sign-cert.py <CSR file>
 
 This will attempt to localize the appropriate certificate profile. If none or multiple are found an error is shown. Use the `--profile` flag to manually select the certificate profile to use.
 
-Alternatively you can override the information provided in the CSR (except for the public key). Create an enrollment file and provide it to `sign-cert.py` using the `--enrollment` flag. 
+Alternatively you can override the information provided in the CSR (except for the public key). Create an enrollment file as described in [Option 1](#option-1-fauxtsp-generates-key-pairs-) and provide it to `sign-cert.py` using the `--enrollment` flag. 
 
 ## Revocations
 
-When CA certificates are created, an associated Certificate Revocation List (CRL) is automatically created. By default no certificates are revoked. However, to test revocation checking, you may want to generate some certificates and revoke them. 
+When CA certificates are created, an associated Certificate Revocation List (CRL) must be created. By default no certificates are revoked. However, to test revocation checking, you may want to generate some certificates and revoke them. 
 
 Each CA certificate will have a corresponding file in the `revocations` directory. For example:
 
@@ -273,7 +289,7 @@ The parameter `crlRenewalHours` indicates the lifespan of a CRL, i.e. the differ
 
 # Requirements
 
-- Python >3.7 
+- Python >3.10
 
 # Support & Contributing
 
