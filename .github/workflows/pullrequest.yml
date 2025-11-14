@@ -292,4 +292,4 @@ jobs:
           openssl x509 -in "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer" -outform pem -out "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem"
           
           # Verify
-          openssl verify -CAfile "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem" -untrusted all_intermediates.pem "cert1.pem"
+          openssl verify -CAfile "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem" -untrusted intermediates.pem leaf.pem
