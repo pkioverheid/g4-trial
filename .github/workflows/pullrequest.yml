@@ -260,3 +260,36 @@ jobs:
 
       - name: Check
         run: ls ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.cer
+
+  write-chain-pem:
+    name: Write a chain file
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create CA
+        run: echo 1 | python create-ca.py
+
+      - name: Issue a certificate
+        run:
+          python generate-cert.py --write-full-chain examples/enrollment/G4-Private-G-TLS-SYS.yaml
+
+      - name: Files exist
+        run: |
+          ls ca/private/G4-Private-G-TLS-SYS.key ca/certs/G4-Private-G-TLS-SYS.cer ca/certs/G4-Private-G-TLS-SYS.pem
+
+      - name: Verify
+        run: |
+          # Split PEM chain into separate files
+          awk '/-----BEGIN CERTIFICATE-----/ {n++} n==1 {print > "leaf.pem"; next} n>1 {print > "intermediates.pem"}' "ca/certs/G4-Private-G-TLS-SYS.pem"
+          
+          # Convert Root DER to PEM
+          openssl x509 -in "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer" -outform pem -out "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem"
+          
+          # Verify
+          openssl verify -CAfile "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem" -untrusted all_intermediates.pem "cert1.pem"

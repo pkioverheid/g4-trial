@@ -26,6 +26,7 @@ class KeyPair:
 
     privatekeyfile = property(lambda self: os.path.join(self.BASEDIR, 'private', f'{self.basename}.key'))
     certificatefile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.cer'))
+    chainfile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.pem'))
 
     def __init__(self, basename):
         self.basename = basename
