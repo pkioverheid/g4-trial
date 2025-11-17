@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('--profile-override', action="store", help="Override Certificate Profile in enrollments")
     parser.add_argument('--issuer-password', action="store", help="Password to decrypt issuer's private key")
     parser.add_argument('--subject-password', action="store", help="Password to encrypt subject's private key")
-    parser.add_argument('--write-full-chain', action="store_true", help="Write a PEM file containing the entire chain, excluding the root")
+    parser.add_argument('--write-full-chain', action="store_true", help="Write a PEM encoded file containing the entire chain, excluding the root, and write the Root to its own PEM encoded file")
     parser.add_argument('enrollments', nargs='+', help="Enrollments to process")
     args = parser.parse_args()
 

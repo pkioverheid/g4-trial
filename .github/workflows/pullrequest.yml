@@ -275,18 +275,34 @@ jobs:
       - name: Create CA
         run: echo 1 | python create-ca.py
 
-      - name: Issue a certificate
+      # Part 1: Directly from Enrollment
+      - name: Issue a certificate from enrollment
         run:
           python generate-cert.py --write-full-chain examples/enrollment/G4-Private-G-TLS-SYS.yaml
 
-      - name: Files exist
-        run: |
-          ls ca/private/G4-Private-G-TLS-SYS.key ca/certs/G4-Private-G-TLS-SYS.cer ca/certs/G4-Private-G-TLS-SYS.pem
-
       - name: Verify
         run: |
+          ls ca/certs/G4-Private-G-TLS-SYS.pem ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem
+
           # Split PEM chain into separate files
           awk '/-----BEGIN CERTIFICATE-----/ {n++} n==1 {print > "leaf.pem"; next} n>1 {print > "intermediates.pem"}' "ca/certs/G4-Private-G-TLS-SYS.pem"
           
           # Verify
           openssl verify -CAfile "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem" -untrusted intermediates.pem leaf.pem
+
+      # Part 2: using a CSR
+      - name: Generate and sign CSR
+        run: |
+          python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS-withOIN.yaml
+          python sign-cert.py --write-full-chain --enrollment examples/enrollment/G4-Private-G-TLS-SYS-withOIN.yaml G4-Private-G-TLS-SYS-withOIN.csr
+
+      - name: Verify
+        run: |
+          ls ca/certs/G4-Private-G-TLS-SYS.pem ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem
+
+          # Split PEM chain into separate files
+          awk '/-----BEGIN CERTIFICATE-----/ {n++} n==1 {print > "leaf.pem"; next} n>1 {print > "intermediates.pem"}' "ca/certs/G4-Private-G-TLS-SYS-withOIN.pem"
+          
+          # Verify
+          openssl verify -CAfile "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem" -untrusted intermediates.pem leaf.pem
+
