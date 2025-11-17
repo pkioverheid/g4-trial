@@ -107,7 +107,7 @@ if __name__ == "__main__":
         cert = sign(subject_profile, enrollment, issuer_profile, subject_keys, issuer_keys, config)
 
         # Write issued certificate to disk
-        filename = subject_keys.certificatefile
+        filename = subject_keys.derfile
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
 

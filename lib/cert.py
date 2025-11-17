@@ -237,7 +237,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
     cert = sign(profile, enrollment, issuer, subject_keys, issuer_keys, config)
 
     # Write issued certificate to disk
-    filename = subject_keys.certificatefile
+    filename = subject_keys.derfile
     with open(filename, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.DER))
 

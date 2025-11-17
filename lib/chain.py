@@ -17,7 +17,7 @@ def write_full_chain(subject_keys: KeyPair, leaf_profile: dict) -> None:
     :param leaf_profile:
     :return: None
     """
-    with open(subject_keys.chainfile, "wb") as f:
+    with open(subject_keys.pemfile, "wb") as f:
         # First write the leaf
         f.write(subject_keys.certificate.public_bytes(serialization.Encoding.PEM))
 
@@ -27,15 +27,19 @@ def write_full_chain(subject_keys: KeyPair, leaf_profile: dict) -> None:
             issuer_enrollment = load_yaml(os.path.join('enrollment', issuer))
             issuer_profile = load_yaml(issuer_enrollment['profile'])
             issuer_basename = generate_basename(issuer_enrollment['subject'])
-            if issuer_profile['issuer'] == f'{issuer_basename}.yaml':
-                # Don't include self signed certificates, i.e. the Root
-                break
 
             # Load and write the key pair of the issuer
             issuer_keys = KeyPair(issuer_basename).load()
+
+            if issuer_profile['issuer'] == f'{issuer_basename}.yaml':
+                # Write the Root its own PEM file
+                with open(issuer_keys.pemfile, "wb") as rf:
+                    rf.write(issuer_keys.certificate.public_bytes(serialization.Encoding.PEM))
+                break
+
             f.write(issuer_keys.certificate.public_bytes(serialization.Encoding.PEM))
 
-            # etup for next iteration
+            # Setup for next iteration
             issuer = issuer_profile['issuer']
 
-    logger.info(f"Certificate chain file saved to {subject_keys.chainfile}")
+    logger.info(f"Certificate chain file saved to {subject_keys.pemfile}")

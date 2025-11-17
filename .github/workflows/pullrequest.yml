@@ -288,8 +288,5 @@ jobs:
           # Split PEM chain into separate files
           awk '/-----BEGIN CERTIFICATE-----/ {n++} n==1 {print > "leaf.pem"; next} n>1 {print > "intermediates.pem"}' "ca/certs/G4-Private-G-TLS-SYS.pem"
           
-          # Convert Root DER to PEM
-          openssl x509 -in "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer" -outform pem -out "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem"
-          
           # Verify
           openssl verify -CAfile "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem" -untrusted intermediates.pem leaf.pem

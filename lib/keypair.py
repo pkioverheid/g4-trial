@@ -25,8 +25,8 @@ class KeyPair:
     BASEDIR = 'ca'
 
     privatekeyfile = property(lambda self: os.path.join(self.BASEDIR, 'private', f'{self.basename}.key'))
-    certificatefile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.cer'))
-    chainfile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.pem'))
+    derfile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.cer'))
+    pemfile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.pem'))
 
     def __init__(self, basename):
         self.basename = basename
@@ -39,7 +39,7 @@ class KeyPair:
         return cls(pathlib.Path(filename).stem)
 
     def exists(self):
-        return os.path.isfile(self.privatekeyfile) or os.path.isfile(self.certificatefile)
+        return os.path.isfile(self.privatekeyfile) or os.path.isfile(self.derfile)
 
     def load(self, password=None):
         if self.public_key:
@@ -51,7 +51,7 @@ class KeyPair:
                         password = password.encode("utf-8")
                     self.private_key = serialization.load_pem_private_key(f.read(), password=password)
             if not self.certificate:
-                with open(self.certificatefile, "rb") as f:
+                with open(self.derfile, "rb") as f:
                     # Load the certificate and extract the public key
                    self.certificate = load_der_x509_certificate(f.read())
                    self.public_key = self.certificate.public_key()
@@ -103,4 +103,4 @@ class KeyPair:
         if self.certificate:
             c_loaded = " (loaded)"
 
-        return f'KeyPair<Private Key={self.privatekeyfile}{p_loaded}, Certificate={self.certificatefile}{c_loaded}>'
+        return f'KeyPair<Private Key={self.privatekeyfile}{p_loaded}, Certificate={self.derfile}{c_loaded}>'
