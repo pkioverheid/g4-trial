@@ -108,7 +108,7 @@ validations:
         format: hostname
         not:
           pattern: \.onion$
-        pattern: ^(?!\*\.)[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$
+        pattern: ^(?!\*\.)[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+|localhost$
         type: string
       maxItems: 100
       minItems: 1
