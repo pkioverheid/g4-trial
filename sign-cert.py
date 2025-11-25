@@ -7,6 +7,7 @@ import sys
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound, DNSName
 from jschon import create_catalog, JSON, JSONSchema
+from lib.chain import write_full_chain
 
 from lib.cert import sign
 from lib.csr import verify
@@ -48,6 +49,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--issuer-password', action="store", help="Password to decrypt issuer's private key")
+    parser.add_argument('--write-full-chain', action="store_true", help="Write a PEM encoded file containing the entire chain, excluding the root, and write the Root to its own PEM encoded file")
     parser.add_argument('csrs', nargs='+', help="CSRs to process")
 
     group = parser.add_mutually_exclusive_group()
@@ -107,10 +109,13 @@ if __name__ == "__main__":
         cert = sign(subject_profile, enrollment, issuer_profile, subject_keys, issuer_keys, config)
 
         # Write issued certificate to disk
-        filename = subject_keys.certificatefile
+        filename = subject_keys.derfile
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
 
         log_issued_cert(cert)
 
         logger.info(f"Certificate issued and saved to {filename}")
+
+        if args.write_full_chain:
+            write_full_chain(subject_keys, subject_profile)
