@@ -105,10 +105,12 @@ validations:
       type: object
     subjectAltNames:
       items:
+        anyOf:
+        - pattern: ^(?!\*\.)[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$
+        - text: localhost
         format: hostname
         not:
           pattern: \.onion$
-        pattern: ^(?!\*\.)[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$
         type: string
       maxItems: 100
       minItems: 1
