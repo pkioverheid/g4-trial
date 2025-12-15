@@ -13,12 +13,16 @@
 
 This tool allows you to generate TRIAL (test) certificates for the PKIoverheid G4 hierarchies yourself. It generates a complete hierarchy of certificates resembling a chosen G4 hierarchy. For more information on these hierarchies, please refer to the [PKIoverheid CPS, Section 1.1](https://cps.pkioverheid.nl/pkioverheid-cps-unified-v5.4.html#id__11-overview).
 
-The tooling can be used in several different ways:
+If you need just a few G4 TRIAL end entity certificates for testing purposes, the following organisation(s) issue these for free:
+
+* [PKIpartners](https://www.pkipartners.nl/g4-trial)
+
+Please note: only the PKIoverheid Trust Service Providers issue production PKIoverheid certificates. For more information see [PKIoverheidcertificaat aanvragen](https://www.logius.nl/onze-dienstverlening/toegang/pkioverheid/pkioverheidcertificaat-aanvragen) (in Dutch). 
+
+To generate G4 TRIAL certificates yourself, there are two options:
 
 * To validate your own (local) technical setup, download this repository and create the full hierarchies yourself;
-* To use G4 TRIAL certificates for integration testen ("ketentesten") there are two options:
-  1. If you need just a few G4 TRIAL certificates, some organisations issue G4 TRIAL certificates for free, see the list at <https://cert.pkioverheid.nl>. 
-  2. If you intend to issue many TRIAL certificates (perhaps to suppliers) you may request a "fauxTSP" CA certificate for the common G4 TRIAL hierarchies. Please contact us to discuss in detail.    
+* To use for integration testen ("ketentesten") and you intend to issue many TRIAL certificates (perhaps to suppliers) you may request a "fauxTSP" CA certificate for the common G4 TRIAL hierarchies. Please contact us to discuss in detail.    
 
 For the G3 certificate hierarchy some PKIoverheid TSPs offer TRIAL certificates. However, the G4 hierarchies consists of many different types of certificates, increasing implementation costs for TSPs. Therefore it was deemed most effective for users to be able to generate their own test certificates using a publicly available tool.
 
