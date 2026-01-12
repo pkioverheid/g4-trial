@@ -24,8 +24,6 @@ extensions:
     value:
     - name: ncp
       oid: 0.4.0.2042.1.1
-    - name: ncpplus
-      oid: 0.4.0.2042.1.2
     - name: id-pkio-cp-g4d-gen10PrvOth-npRPSp-authon
       oid: 2.16.528.1.1003.1.2.41.16.14.8
   extendedKeyUsage:
