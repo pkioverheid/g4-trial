@@ -13,7 +13,7 @@
 
 This tool allows you to generate TRIAL (test) certificates for the PKIoverheid G4 hierarchies yourself. It generates a complete hierarchy of certificates resembling a chosen G4 hierarchy. For more information on these hierarchies, please refer to the [PKIoverheid CPS, Section 1.1](https://cps.pkioverheid.nl/pkioverheid-cps-unified-v5.4.html#id__11-overview).
 
-G4 TRIAL end entity certificates for testing purposes can be acquired free of charge from the following organisation(s):
+G4 TRIAL end entity certificates for testing purposes can be acquired free of charge from the following organisation(s); however, when certificates are issued on physical tokens, a fee may apply. 
 
 * [PKIpartners](https://www.pkipartners.nl/g4-trial)
 
