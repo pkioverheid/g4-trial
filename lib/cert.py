@@ -15,6 +15,7 @@ from .dn import as_name, generate_basename
 from .events import log_issued_cert
 from .keypair import KeyPair, get_hash_algo
 from .ra import validate
+from .san import build_san_extension
 from .util import force_int, keys_exist, load_yaml
 
 logger = logging.getLogger(__name__)
@@ -122,10 +123,10 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys, config):
         )
 
     if 'subjectAltNames' in enrollment:
-        # SANs are define in the enrollment data
-        dns_names = [x509.DNSName(name) for name in enrollment['subjectAltNames']]
         builder = builder.add_extension(
-            x509.SubjectAlternativeName(dns_names),
+                x509.SubjectAlternativeName(
+                build_san_extension(enrollment['subjectAltNames'], config)
+            ),
             critical=ext.get('subjectAltNames', {}).get('critical', False)
         )
 

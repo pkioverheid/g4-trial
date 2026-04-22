@@ -5,7 +5,7 @@ import os
 import sys
 
 from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound, DNSName
+from cryptography.x509 import  load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound
 from jschon import create_catalog, JSON, JSONSchema
 from lib.chain import write_full_chain
 
@@ -16,7 +16,9 @@ from lib.events import log_issued_cert
 from lib.keypair import KeyPair
 from lib.names import as_dict
 from lib.ra import validate
+from lib.san import read_generalnames
 from lib.util import load_yaml
+
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("sign-cert")
@@ -81,12 +83,15 @@ if __name__ == "__main__":
                 'profile': 'tbd',
                 'subject': as_dict(csr.subject)
             }
+
+            # Rebuild internal representation of the included SAN to allow validation
             try:
                 ext = csr.extensions.get_extension_for_class(SubjectAlternativeName)
-                enrollment['subjectAltNames'] = ext.value.get_values_for_type(DNSName)
+                enrollment['subjectAltNames'] = read_generalnames(ext.value.public_bytes())
                 logger.debug(f"CSR contained {len(enrollment['subjectAltNames'])} SANs.")
             except ExtensionNotFound:
                 pass
+
             enrollment['profile'] = args.profile or find_profile(enrollment)
 
         # Validate

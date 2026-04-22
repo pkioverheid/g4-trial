@@ -135,7 +135,7 @@ jobs:
           test "$csrkey" == "$cerkey"
 
   ee-use-csr-profile:
-    name: Sign a TSP certificate using a CSR and profile
+    name: Sign an end entity certificate containing SANs using a CSR and profile
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -146,25 +146,26 @@ jobs:
           pip install -r requirements.txt
 
       - name: Create CA
-        run: echo 1 | python create-ca.py
+        run: echo 4 | python create-ca.py
 
       - name: Generate CSR
         run: |
-          python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
-          ls G4-Private-G-TLS-SYS.csr
+          python create-csr.py examples/enrollment/G4-EUTL-G-Sigs-NP-Sponsor-otherName.yaml
+          ls G4-EUTL-G-Sigs-NP-Sponsor-otherName.csr
+          openssl req -in G4-EUTL-G-Sigs-NP-Sponsor-otherName.csr -verify -noout 
 
-      - name: Sign TSP CSR using a profile
+      - name: Sign EE CSR using an profile
         run: |
-          python sign-cert.py --profile profiles/G4TRIALEEPrivGTLSSYS2025.yaml G4-Private-G-TLS-SYS.csr
-          ls ca/certs/G4-Private-G-TLS-SYS.cer
+          python sign-cert.py --profile profiles/G4TRIALEEEUTLGSigsNP2025SponsorValidated.yaml G4-EUTL-G-Sigs-NP-Sponsor-otherName.csr
+          ls ca/certs/G4-EUTL-G-Sigs-NP-Sponsor-otherName.cer
 
       - name: Verify chain
         run: |
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
-          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootEUTLGSigs2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmEUTLGSigsNP2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoEUTLGSigsNP2025.pem ca/certs/G4-EUTL-G-Sigs-NP-Sponsor-otherName.cer
 
-  ee-use-csr-enrollment:
-    name: Sign a TSP certificate using a CSR and enrollment
+  ee-use-csr-tls-enrollment:
+    name: Sign a TLS certificate containing SANs using a CSR and enrollment
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -181,8 +182,9 @@ jobs:
         run: |
           python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
           ls G4-Private-G-TLS-SYS.csr
+          openssl req -in G4-Private-G-TLS-SYS.csr -verify -noout 
 
-      - name: Sign TSP CSR using an enrollment
+      - name: Sign EE CSR using an enrollment
         run: |
           python sign-cert.py --enrollment examples/enrollment/G4-Private-G-TLS-SYS.yaml G4-Private-G-TLS-SYS.csr
           ls ca/certs/G4-Private-G-TLS-SYS.cer
