@@ -134,12 +134,3 @@ def read_generalnames(names_raw: bytes):
             results.append(result)
 
     return results
-
-            
-
-            
-
-
-
-
-
