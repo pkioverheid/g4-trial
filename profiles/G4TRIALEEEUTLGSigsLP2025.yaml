@@ -112,7 +112,7 @@ validations:
           minLength: 2
           then:
             allOf:
-            - pattern: ^00000099[0-9]{9}000$
+            - pattern: ^000000[0-9]{2}[0-9]{9}000$
           type: string
       required:
       - C
