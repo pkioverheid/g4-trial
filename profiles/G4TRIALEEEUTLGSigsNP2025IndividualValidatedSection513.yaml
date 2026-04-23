@@ -112,6 +112,50 @@ validations:
       - SN
       - serialNumber
       type: object
+    subjectAltNames:
+      items:
+        oneOf:
+        - format: email
+          type: string
+        - properties:
+            type-id:
+              const: 1.3.6.1.4.1.311.20.2.3
+              type: string
+            value:
+              pattern: ^[^@\s]+@[^@\s]+$
+              type: string
+          required:
+          - type-id
+          - value
+          type: object
+        - properties:
+            type-id:
+              enum:
+              - 1.3.6.1.4.1.1466.115.121.1.26
+              - 2.5.5.5
+              type: string
+            value:
+              pattern: ^[0-9]+(\.[0-9]+)*-[A-Za-z0-9 '()+,\-./:=?]+$
+              type: string
+          required:
+          - type-id
+          - value
+          type: object
+        - additionalProperties: false
+          properties:
+            assigner:
+              pattern: ^[0-9]+(\.[0-9]+)*$
+              type: string
+            identifierValue:
+              type: string
+            type-id:
+              pattern: ^[0-9]+(\.[0-9]+)*$
+              type: string
+          required:
+          - identifierValue
+          - assigner
+          type: object
+      type: array
   required:
   - profile
   - subject

@@ -297,7 +297,7 @@ The parameter `crlRenewalHours` indicates the lifespan of a CRL, i.e. the differ
 
 # Requirements
 
-- Python >3.10
+- Python >3.12
 
 # Support & Contributing
 

@@ -1,15 +1,16 @@
 import logging
 import os
 
+from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, padding, rsa
-from cryptography.x509 import CertificateSigningRequestBuilder, SubjectAlternativeName, DNSName, \
-    CertificateSigningRequest
+from cryptography.x509 import CertificateSigningRequestBuilder, CertificateSigningRequest
 
 from .keypair import get_hash_algo, KeyPair
 from .names import as_name
 from .ra import validate
+from .san import build_san_extension
 from .util import force_int
 
 logger = logging.getLogger(__name__)
@@ -29,9 +30,12 @@ def create_csr(profile: dict, enrollment: dict, subject_keys: KeyPair, password=
     builder = CertificateSigningRequestBuilder().subject_name(as_name(enrollment['subject']))
 
     if 'subjectAltNames' in enrollment:
-        sans = [DNSName(item) for item in enrollment['subjectAltNames']]
-        san_extension = SubjectAlternativeName(sans)
-        builder = builder.add_extension(san_extension, critical=False)
+        builder = builder.add_extension(
+                x509.SubjectAlternativeName(
+                build_san_extension(enrollment['subjectAltNames'], {})
+            ),
+            critical=False
+        )
 
     return builder.sign(subject_keys.private_key,
                         algorithm=hash_algo,

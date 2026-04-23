@@ -5,16 +5,51 @@ on:
     types: [synchronize, opened, ready_for_review]
 
 jobs:
+
+  unittests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Test with pytest
+        run: |
+          pytest
+
   allup:
     name: Generate a full hierarchy (automatic)
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create CA
         run: echo 1 | python create-ca.py
@@ -38,13 +73,18 @@ jobs:
   one-by-one:
     name: Generate a full hierarchy (separate)
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create Root
         run: |
@@ -75,13 +115,18 @@ jobs:
   reissue-crl:
     name: Reissue a CRL
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create Root CRLs
         run: |
@@ -99,13 +144,18 @@ jobs:
   tsp-use-csr:
     name: Sign a TSP certificate using a CSR
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Generate CSR
         run: |
@@ -135,44 +185,55 @@ jobs:
           test "$csrkey" == "$cerkey"
 
   ee-use-csr-profile:
-    name: Sign a TSP certificate using a CSR and profile
+    name: Sign an end entity certificate containing different types of SANs using a CSR and profile
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create CA
-        run: echo 1 | python create-ca.py
+        run: echo 2 | python create-ca.py
 
       - name: Generate CSR
         run: |
-          python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
-          ls G4-Private-G-TLS-SYS.csr
+          python create-csr.py examples/enrollment/G4-Private-G-Other-NP-Sponsor-otherName.yaml
+          ls G4-Private-G-Other-NP-Sponsor-otherName.csr
+          openssl req -in G4-Private-G-Other-NP-Sponsor-otherName.csr -verify -noout 
 
-      - name: Sign TSP CSR using a profile
+      - name: Sign EE CSR using an profile
         run: |
-          python sign-cert.py --profile profiles/G4TRIALEEPrivGTLSSYS2025.yaml G4-Private-G-TLS-SYS.csr
-          ls ca/certs/G4-Private-G-TLS-SYS.cer
+          python sign-cert.py --profile profiles/G4TRIALEEPrivGOtherNP2025SponsorValidated.yaml G4-Private-G-Other-NP-Sponsor-otherName.csr
+          ls ca/certs/G4-Private-G-Other-NP-Sponsor-otherName.cer
 
       - name: Verify chain
         run: |
           find "ca" -name "*.cer" -exec sh -c 'openssl x509 -in $1 -outform pem -out "${1%.*}.pem" ' sh {} \;
-          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGTLSSYS2025.pem ca/certs/G4-Private-G-TLS-SYS.cer
+          openssl verify -CAfile ca/certs/TRIALPKIoverheidG4RootPrivGOther2024.pem -untrusted ca/certs/TRIALPKIoverheidG4IntmPrivGOtherNP2024.pem -untrusted ca/certs/TRIALMyTSPG4PKIoPrivGOtherNP2025.pem ca/certs/G4-Private-G-Other-NP-Sponsor-otherName.cer
 
-  ee-use-csr-enrollment:
-    name: Sign a TSP certificate using a CSR and enrollment
+  ee-use-csr-tls-enrollment:
+    name: Sign a TLS certificate containing SANs using a CSR and enrollment
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create CA
         run: echo 1 | python create-ca.py
@@ -181,8 +242,9 @@ jobs:
         run: |
           python create-csr.py examples/enrollment/G4-Private-G-TLS-SYS.yaml
           ls G4-Private-G-TLS-SYS.csr
+          openssl req -in G4-Private-G-TLS-SYS.csr -verify -noout 
 
-      - name: Sign TSP CSR using an enrollment
+      - name: Sign EE CSR using an enrollment
         run: |
           python sign-cert.py --enrollment examples/enrollment/G4-Private-G-TLS-SYS.yaml G4-Private-G-TLS-SYS.csr
           ls ca/certs/G4-Private-G-TLS-SYS.cer
@@ -195,13 +257,18 @@ jobs:
   examples:
     name: Examples
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create CAs
         run: |
@@ -217,13 +284,18 @@ jobs:
   use-passwords:
     name: Use password encrypted private keys
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create Root
         run: python generate-cert.py --subject-password RootPassword1 "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
@@ -264,13 +336,18 @@ jobs:
   write-chain-pem:
     name: Write a chain file
     runs-on: ubuntu-latest
+    needs:
+      - unittests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Install packages
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Create CA
         run: echo 1 | python create-ca.py
