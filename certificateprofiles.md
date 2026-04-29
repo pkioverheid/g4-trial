@@ -42,6 +42,6 @@ G4TRIALRootEUTLGSigs2024.yaml                                                   
 |   |   |-- G4TRIALEEEUTLGSigsNP2025RegulatedProfessionwithSponsorValidation.yaml  -- Profile for eSignature certificates issued to regulated professions with sponsor validated
 |   |   `-- G4TRIALEEEUTLGSigsNP2025SponsorValidated.yaml                          -- Profile for eSignature certificates issued to sponsor validated individuals
 `-- G4TRIALIntmEUTLGSigsLP2024.yaml                                                -- Certificate profile for "TRIAL PKIoverheid - G4 Intm EUTL G-Sigs LP"
-    `-- G4TRIALEEEUTLGSigsLP2025.yaml                                              -- Certificate profile for "TRIAL My TSP - G4 PKIo EUTL G-Sigs LP"
+    `-- G4TRIALMyTSPEUTLGSigsLP2025.yaml                                           -- Certificate profile for "TRIAL My TSP - G4 PKIo EUTL G-Sigs LP"
         `-- G4TRIALEEEUTLGSigsLP2025.yaml                                          -- Profile for eSeal certificates issued to legal persons 
 ```
