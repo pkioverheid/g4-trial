@@ -11,7 +11,7 @@ from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
 
 from .qc_statements import build_qc_statements_extension
-from .dn import as_name, generate_basename
+from .dn import as_name
 from .events import log_issued_cert
 from .keypair import KeyPair, get_hash_algo
 from .ra import validate
@@ -209,7 +209,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
 
     # Find issuer keypair by its DN from its enrollment
     issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
-    issuer_keys = KeyPair(generate_basename(issuer['subject']))
+    issuer_keys = KeyPair(os.path.splitext(profile['issuer'])[0])
 
     selfsigned = issuer['subject'] == enrollment['subject']
     if selfsigned:
