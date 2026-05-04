@@ -1,7 +1,7 @@
 ---
-profile: profiles/G4TRIALPKIoEUTLGSigsNP2025.yaml
+profile: profiles/G4TRIALPKIoEUTLGSigsLP2024.yaml
 subject:
   C: NL
   O: TRIAL My TSP - not for Production use
-  CN: TRIAL My TSP - G4 PKIo EUTL G-Sigs NP - 2025
+  CN: TRIAL My TSP - G4 PKIo EUTL G-Sigs LP - 2026
   organizationIdentifier: NTRNL-99999990

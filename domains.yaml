@@ -47,27 +47,27 @@ domains:
   G4 EUTL Signatures Generic Natural Persons:
     hierarchy:
       - profile: profiles/G4TRIALRootEUTLGSigs2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
+        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
 
       - profile: profiles/G4TRIALIntmEUTLGSigsNP2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsNP2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsNP2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsNP2026.yaml
+        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsNP2026.yaml
 
-      - profile: profiles/G4TRIALPKIoEUTLGSigsNP2025.yaml
-        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml
-        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsNP2025.yaml
+      - profile: profiles/G4TRIALPKIoEUTLGSigsNP2024.yaml
+        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsNP2026.yaml
+        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsNP2026.yaml
 
   G4 EUTL Signatures Generic Legal Persons:
     hierarchy:
       - profile: profiles/G4TRIALRootEUTLGSigs2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
+        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
 
       - profile: profiles/G4TRIALIntmEUTLGSigsLP2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsLP2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsLP2024.yaml
+        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsLP2026.yaml
+        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsLP2026.yaml
 
-      - profile: profiles/G4TRIALPKIoEUTLGSigsLP2025.yaml
-        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsLP2025.yaml
-        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsLP2025.yaml
+      - profile: profiles/G4TRIALPKIoEUTLGSigsLP2024.yaml
+        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsLP2026.yaml
+        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsLP2026.yaml
