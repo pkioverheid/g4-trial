@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 
+import yaml
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import  load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound
 from jschon import create_catalog, JSON, JSONSchema
@@ -51,6 +52,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--issuer-password', action="store", help="Password to decrypt issuer's private key")
+
+    parser.add_argument('--write-enrollment', action="store", help="Convert provided CSRs to enrollment data, and write to specified file. Do not sign a certificate. Use this option to override any subject or subjectAlternateName information in the CSRs by using the --enrollment flag on a second run of sign-cert. Ignores all other arguments. ")
+
     parser.add_argument('--write-full-chain', action="store_true", help="Write a PEM encoded file containing the entire chain, excluding the root, and write the Root to its own PEM encoded file")
     parser.add_argument('csrs', nargs='+', help="CSRs to process")
 
@@ -74,11 +78,8 @@ if __name__ == "__main__":
             logger.fatal(f"{csrfile} signature is invalid, skipping ❌")
             exit(1)
 
-        if args.enrollment:
-            # Use provided enrollment file
-            enrollment = load_yaml(args.enrollment)
-        else:
-            # Rebuild enrollment from CSR data
+        if not args.enrollment:
+            # No enrollment file was provided, rebuild from CSR data
             enrollment = {
                 'profile': 'tbd',
                 'subject': as_dict(csr.subject)
@@ -93,6 +94,23 @@ if __name__ == "__main__":
                 pass
 
             enrollment['profile'] = args.profile or find_profile(enrollment)
+
+            if args.write_enrollment:
+                # Only write the enrollment file. Don't validate data against the certificate profile as this option
+                # may be used to correct an incorrect CSR
+                if os.path.isfile(args.write_enrollment):
+                    logger.fatal(f"Cannot write enrollment, file exists. Please remove it first")
+                    exit(1)
+
+                with open(args.write_enrollment, "w") as f:
+                    yaml.dump(enrollment, f)
+
+                logging.info(f"Wrote enrollment to {args.write_enrollment}")
+
+                continue
+        else:
+            # Use provided enrollment file
+            enrollment = load_yaml(args.enrollment)
 
         # Validate
         subject_profile = load_yaml(enrollment['profile'])

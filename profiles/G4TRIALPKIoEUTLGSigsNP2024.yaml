@@ -25,10 +25,16 @@ extensions:
     value:
     - name: ncpplus
       oid: 0.4.0.2042.1.2
-    - name: qcp-legal-qscd
-      oid: 0.4.0.194112.1.3
-    - name: id-pkio-cp-g4d-gen10EUTLSig-lpOrg-nonrep
-      oid: 2.16.528.1.1003.1.2.41.14.25.5
+    - name: qcp-natural-qscd
+      oid: 0.4.0.194112.1.2
+    - name: id-pkio-cp-g4d-gen10EUTLSig-npInd-nonrep
+      oid: 2.16.528.1.1003.1.2.41.14.11.5
+    - name: id-pkio-cp-g4d-gen10EUTLSig-npRegP-nonrep
+      oid: 2.16.528.1.1003.1.2.41.14.12.5
+    - name: id-pkio-cp-g4d-gen10EUTLSig-npSpon-nonrep
+      oid: 2.16.528.1.1003.1.2.41.14.13.5
+    - name: id-pkio-cp-g4d-gen10EUTLSig-npRPSp-nonrep
+      oid: 2.16.528.1.1003.1.2.41.14.14.5
   extendedKeyUsage:
     critical: false
     oid: 2.5.29.37
@@ -56,7 +62,7 @@ extensions:
     oid: 2.5.29.14
     value: RFC5280 - Method 1
 hashAlgorithm: sha512
-issuer: TRIALPKIoverheidG4IntmEUTLGSigsLP2024.yaml
+issuer: TRIALPKIoverheidG4IntmEUTLGSigsNP2026.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
 publicKeyLength: 4096 bit
@@ -79,7 +85,7 @@ validations:
         CN:
           allOf:
           - pattern: ^TRIAL .*
-          - pattern: ' - G4 PKIo EUTL G-Sigs LP - 20[0-9][0-9](-[0-9]+)?$'
+          - pattern: ' - G4 PKIo EUTL G-Sigs NP - 20[0-9][0-9](-[0-9]+)?$'
           maxLength: 64
           type: string
         O:

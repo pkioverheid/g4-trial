@@ -58,7 +58,7 @@ extensions:
     oid: 2.5.29.14
     value: RFC5280 - Method 1
 hashAlgorithm: sha512
-issuer: TRIALPKIoverheidG4RootEUTLGSigs2024.yaml
+issuer: TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
 maskAlgorithm: Mgf1 with sha512
 publicKeyAlgorithm: rsaEncryption
 publicKeyLength: 4096 bit
