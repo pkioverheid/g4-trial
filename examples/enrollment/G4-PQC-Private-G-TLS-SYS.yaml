@@ -1,0 +1,11 @@
+---
+profile: profiles/G4TRIALPQCEEPrivGTLSSYS2026.yaml
+subject:
+  C: NL
+  O: TRIAL Company name
+  CN: TRIAL Company name
+  organizationIdentifier: NTRNL-99999991  # This is the KvK Registration number in an ETSI format
+  serialNumber: 00000099999999910000      # KvK registration number prefixed with '00000009' and postfixed to become 20 digits
+subjectAltNames:
+  - example.com
+  - www.example.com

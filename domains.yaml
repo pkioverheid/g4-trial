@@ -26,3 +26,13 @@ domains:
     - enrollment/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
     - enrollment/TRIALPKIoverheidG4IntmEUTLGSigsLP2026.yaml
     - enrollment/TRIALMyTSPG4PKIoEUTLGSigsLP2026.yaml
+
+  G4 PQC Private TLS:
+    - enrollment/TRIALPKIoverheidG4RootPrivGTLS2026.yaml
+    - enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2026.yaml
+    - enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2026.yaml
+
+  G4 PQC Private Other Generic LP:
+    - enrollment/TRIALPKIoverheidG4RootPrivGOther2026.yaml
+    - enrollment/TRIALPKIoverheidG4IntmPrivGOtherLP2026.yaml
+    - enrollment/TRIALMyTSPG4PKIoPrivGOtherLP2026.yaml
