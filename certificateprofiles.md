@@ -25,7 +25,9 @@ G4TRIALRootPrivGOther2024.yaml                                                  
 |   |   `-- G4TRIALEEPrivGOtherNP2025SponsorValidated.yaml                         -- Profile for certificates issued to sponsor validated individuals
 `-- G4TRIALIntmPrivGOtherLP2024.yaml                                               -- Certificate profile for "TRIAL PKIoverheid - G4 Intm Priv G-Other LP"
     |-- TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml                                      -- Certificate profile for "TRIAL My TSP - G4 PKIo Priv G-Other LP"
-    |   `-- G4TRIALEEPrivGOtherLP2025.yaml                                         -- Profile for certificates issued to legal persons
+    |   `-- G4TRIALEEPrivGOtherLPAuthentication2025.yaml                           -- Profile for certificates issued to legal persons for Authentication (clientAuth)
+    |   `-- G4TRIALEEPrivGOtherLPAuthenticity2025.yaml                             -- Profile for certificates issued to legal persons for Authenticity (digitalSignature)
+    |   `-- G4TRIALEEPrivGOtherLPConfidentiality2025.yaml                          -- Profile for certificates issued to legal persons for Confidentiality (keyEncipherment and dataEncipherment)
 ```
 
 ## G4 EUTL Signatures Generic Natural Persons and G4 EUTL Signatures Generic Legal Persons
