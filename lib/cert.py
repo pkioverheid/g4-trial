@@ -135,7 +135,9 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys, config):
 
 def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:dict) -> x509.Certificate:
 
-    logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {as_name(issuer['subject']).rfc4514_string()}")
+    issuer_name = issuer_keys.certificate.subject if issuer_keys.certificate is not None else as_name(issuer['subject'])
+    
+    logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {issuer_name.rfc4514_string()}")
 
     # Replace placeholders with actual values
     replacements = config.copy()
@@ -180,7 +182,7 @@ def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issue
     # Certificate Builder
     builder = x509.CertificateBuilder()
     builder = builder.subject_name(as_name(enrollment['subject']))
-    builder = builder.issuer_name(as_name(issuer['subject']))
+    builder = builder.issuer_name(issuer_name)
     builder = builder.public_key(subject_keys.public_key)
     builder = builder.serial_number(serial_number)
     builder = builder.not_valid_before(not_before)

@@ -11,6 +11,12 @@ class OID:
         self.long_name = long_name
         self.oid = oid
 
+    def names(self):
+        return filter(len, [self.short_name, self.long_name, self.oid.dotted_string])
+
+    def __str__(self):
+        return f"OID(short_name={self.short_name}, long_name={self.long_name}, oid={self.oid})"
+
 
 attributes = [
     OID('C', 'country', NameOID.COUNTRY_NAME),
@@ -31,9 +37,9 @@ attributes = [
 
 def as_name(d: dict):
     merged = []
-    for k, v in d.items():
-        for attribute in attributes:
-            if k in [attribute.short_name, attribute.long_name, attribute.oid.dotted_string]:
+    for attribute in attributes:
+        for k, v in d.items():
+            if k in attribute.names():
                 merged.append(f'{attribute.oid.dotted_string}={v}')
 
     return Name.from_rfc4514_string(','.join(reversed(merged)))
