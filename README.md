@@ -89,6 +89,8 @@ If you require any other G4 Domain, please open a Github issue in this repositor
 
 # Usage
 
+First you'll need to install the software. This can be done directly on your host OS, or use a Docker image. 
+
 ## (option 1) Installation locally
 
 1. Clone this repository locally
@@ -112,10 +114,9 @@ touch config.yaml
 # Pull image
 docker pull ghcr.io/pkioverheid/g4-trial:latest
 
-# Create a CA using an ephemeral docker container
+# Create a CA using an ephemeral docker container (see next step)
 docker run -it --rm -v $(pwd)/ca:/app/ca -v $(pwd)/config.yaml:/app/config.yaml ghcr.io/pkioverheid/g4-trial:latest python create-ca.py
 ```
-
 
 ## Quick start
 
@@ -292,6 +293,9 @@ If you intend to host the certificates and CRLs on another domain modify the `co
 caIssuersBaseUrl: http://cert.mydomain.com
 cRLDistributionPointsBaseUrl: http://crl.mydomain.com
 crlRenewalHours: 48
+pdsLocation:
+  url: https://www.github.com/pkioverheid/g4-trial
+  language: en
 ```
 
 The parameter `crlRenewalHours` indicates the lifespan of a CRL, i.e. the difference between `thisUpdate` and `nextUpdate`. The default is 48 hours, but can be modified for testing purposes. 
