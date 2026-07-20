@@ -1,5 +1,6 @@
 import logging
 import sys
+from pathlib import Path
 
 from lib import cert
 from lib import crl
@@ -20,16 +21,22 @@ def main():
 
     hierarchy = choose("Choose a domain:", list(options.keys()))
 
-    # Creating a hierarchy means creating a number of keys
-    for layer in options[hierarchy]['hierarchy']:
-        subject_keys = KeyPair.for_filename(layer['enrollment'])
-        cert.process(load_yaml(layer['profile']), load_yaml(layer['enrollment']), subject_keys, config)
-        crl.process(layer['revocations'], config, force=True)
+    enrollmentfiles = options[hierarchy]
+    revocationfiles = [Path("revocations").joinpath(Path(enrollmentfile).name) for enrollmentfile in enrollmentfiles]
+
+    # Creating a hierarchy is simply creating the certificates and CRLs in sequence
+    for enrollmentfile, revocationfile in zip(enrollmentfiles, revocationfiles):
+        enrollment = load_yaml(enrollmentfile)
+        profile = load_yaml(enrollment['profile'])
+        subject_keys = KeyPair.for_filename(enrollmentfile)
+        cert.process(profile, enrollment, subject_keys, config)
+        crl.process(revocationfile, config, force=True)
 
     print(f'To automate this step, run next time:')
-    for layer in options[hierarchy]['hierarchy']:
-        print(f'python generate-cert.py "{layer['enrollment']}"')
-        print(f'python generate-crl.py --force "{layer['revocations']}"')
+    filenames = "\' \'".join(enrollmentfiles)
+    print(f'python generate-cert.py \'{filenames}\'')
+    filenames = "\' \'".join([str(f) for f in revocationfiles])
+    print(f'python generate-crl.py --force \'{filenames}\'')
 
 
 if __name__ == "__main__":

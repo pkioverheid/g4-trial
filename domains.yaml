@@ -3,71 +3,26 @@
 domains:
 
   G4 Private TLS:
-    hierarchy:
-      - profile: profiles/G4TRIALRootPrivGTLS2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4RootPrivGTLS2024.yaml
-
-      - profile: profiles/G4TRIALIntmPrivGTLSSYS2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml
-
-      - profile: profiles/G4TRIALPKIoPrivGTLSSYS2025.yaml
-        enrollment: enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
-        revocations: revocations/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
-
+    - enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml
+    - enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml
+    - enrollment/TRIALMyTSPG4PKIoPrivGTLSSYS2025.yaml
+        
   G4 Private Other Generic NP:
-    hierarchy:
-      - profile: profiles/G4TRIALRootPrivGOther2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4RootPrivGOther2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4RootPrivGOther2024.yaml
-
-      - profile: profiles/G4TRIALIntmPrivGOtherNP2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4IntmPrivGOtherNP2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4IntmPrivGOtherNP2024.yaml
-
-      - profile: profiles/G4TRIALPKIoPrivGOtherNP2025.yaml
-        enrollment: enrollment/TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
-        revocations: revocations/TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
+    - enrollment/TRIALPKIoverheidG4RootPrivGOther2024.yaml
+    - enrollment/TRIALPKIoverheidG4IntmPrivGOtherNP2024.yaml
+    - enrollment/TRIALMyTSPG4PKIoPrivGOtherNP2025.yaml
 
   G4 Private Other Generic LP:
-    hierarchy:
-      - profile: profiles/G4TRIALRootPrivGOther2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4RootPrivGOther2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4RootPrivGOther2024.yaml
-
-      - profile: profiles/G4TRIALIntmPrivGOtherLP2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4IntmPrivGOtherLP2024.yaml
-        revocations: revocations/TRIALPKIoverheidG4IntmPrivGOtherLP2024.yaml
-
-      - profile: profiles/G4TRIALPKIoPrivGOtherLP2025.yaml
-        enrollment: enrollment/TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml
-        revocations: revocations/TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml
-
+    - enrollment/TRIALPKIoverheidG4RootPrivGOther2024.yaml
+    - enrollment/TRIALPKIoverheidG4IntmPrivGOtherLP2024.yaml
+    - enrollment/TRIALMyTSPG4PKIoPrivGOtherLP2025.yaml
+        
   G4 EUTL Signatures Generic Natural Persons:
-    hierarchy:
-      - profile: profiles/G4TRIALRootEUTLGSigs2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
-        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
-
-      - profile: profiles/G4TRIALIntmEUTLGSigsNP2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsNP2026.yaml
-        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsNP2026.yaml
-
-      - profile: profiles/G4TRIALPKIoEUTLGSigsNP2024.yaml
-        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsNP2026.yaml
-        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsNP2026.yaml
-
+    - enrollment/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
+    - enrollment/TRIALPKIoverheidG4IntmEUTLGSigsNP2026.yaml
+    - enrollment/TRIALMyTSPG4PKIoEUTLGSigsNP2026.yaml
+        
   G4 EUTL Signatures Generic Legal Persons:
-    hierarchy:
-      - profile: profiles/G4TRIALRootEUTLGSigs2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
-        revocations: revocations/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
-
-      - profile: profiles/G4TRIALIntmEUTLGSigsLP2024.yaml
-        enrollment: enrollment/TRIALPKIoverheidG4IntmEUTLGSigsLP2026.yaml
-        revocations: revocations/TRIALPKIoverheidG4IntmEUTLGSigsLP2026.yaml
-
-      - profile: profiles/G4TRIALPKIoEUTLGSigsLP2024.yaml
-        enrollment: enrollment/TRIALMyTSPG4PKIoEUTLGSigsLP2026.yaml
-        revocations: revocations/TRIALMyTSPG4PKIoEUTLGSigsLP2026.yaml
+    - enrollment/TRIALPKIoverheidG4RootEUTLGSigs2026.yaml
+    - enrollment/TRIALPKIoverheidG4IntmEUTLGSigsLP2026.yaml
+    - enrollment/TRIALMyTSPG4PKIoEUTLGSigsLP2026.yaml

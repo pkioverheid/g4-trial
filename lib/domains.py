@@ -1,33 +1,25 @@
 import os
 
+from lib.util import load_yaml
+
 
 def verify(data):
-
-    def collect_file_paths(data):
-        paths = []
-
-        for domain, content in data.items():
-            # Check hierarchy items
-            for item in content.get('hierarchy', []):
-                for key in ('profile', 'enrollment', 'revocations'):
-                    if key in item:
-                        paths.append(item[key])
-
-            # Check endentity items
-            for item in content.get('endentity', []):
-                if 'profile' in item:
-                    paths.append(item['profile'])
-
-        return paths
-
-    paths = collect_file_paths(data)
-
     missing = []
-    for path in paths:
-        if not os.path.isfile(path):
-            print(f'MISSING: {path}')
-            missing.append(path)
+    for enrollmentfiles in data.values():
+        for enrollmentfile in enrollmentfiles:
+            # Verify existance of enrollment
+            if not os.path.isfile(enrollmentfile):
+                missing.append(enrollmentfile)
+
+            # Verify existance of profile referenced in enrollment
+            enrollment = load_yaml(enrollmentfile)
+            if not os.path.isfile(enrollment['profile']):
+                missing.append(f'{enrollment['profile']} (referenced in {enrollmentfile})')
+
+    for path in missing:
+        print(f'MISSING: {path}')
 
     if missing:
         print(f'\n{len(missing)} files missing.')
-    return len(missing) == 0
+
+    return not missing
