@@ -67,7 +67,24 @@ def choose(prompt, options):
 
 
 def load_config():
-    config = load_yaml("config.yaml")
+    filename = "config.yaml"
+
+    try:
+        config = load_yaml(filename) or {}
+    except FileNotFoundError:
+        config = {}
+
+    defaults = {
+        "caIssuersBaseUrl": "http://cert.pkioverheid.nl",
+        "cRLDistributionPointsBaseUrl": "http://crl.pkioverheid.nl",
+        "crlRenewalHours": 48,
+        "pdsLocation": {
+            "url": "https://www.github.com/pkioverheid/g4-trial",
+            "language": "en",
+        },
+    }
+    defaults.update(config)
+    config = defaults
 
     create_catalog("2020-12")
     schema = JSONSchema.loadf(os.path.join('schema', 'config.json'))
@@ -75,8 +92,12 @@ def load_config():
     instance = JSON(config)
     result = schema.evaluate(instance)
     if not result.valid:
-        print(f"Configuration file config.yaml is invalid: ")
+        print(f"Configuration file {filename} is invalid: ")
         output_errors(result.output("detailed")["errors"])
         exit(1)
+
+    # Only write file if validation passed, to avoid overwriting with invalid data
+    with open(filename, "w") as f:
+        yaml.safe_dump(config, f, sort_keys=False)
 
     return config
