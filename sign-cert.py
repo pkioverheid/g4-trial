@@ -6,11 +6,15 @@ import sys
 
 import yaml
 from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import  load_pem_x509_csr, SubjectAlternativeName, ExtensionNotFound
-from jschon import create_catalog, JSON, JSONSchema
-from lib.chain import write_full_chain
+from cryptography.x509 import (
+    ExtensionNotFound,
+    SubjectAlternativeName,
+    load_pem_x509_csr,
+)
+from jschon import JSON, JSONSchema, create_catalog
 
 from lib.cert import sign
+from lib.chain import write_full_chain
 from lib.csr import verify
 from lib.dn import generate_basename
 from lib.events import log_issued_cert
@@ -19,7 +23,6 @@ from lib.names import as_dict
 from lib.ra import validate
 from lib.san import read_generalnames
 from lib.util import load_yaml
-
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("sign-cert")
@@ -68,15 +71,15 @@ if __name__ == "__main__":
 
     for csrfile in args.csrs:
 
-        logging.info(f"Processing {csrfile}")
+        logger.info(f"Processing {csrfile}")
 
-        # Rebuild enrollment data to we can verify it
+        # Rebuild enrollment data to we can verify
         with open(csrfile, "rb") as f:
             csr = load_pem_x509_csr(f.read())
 
         if not verify(csr):
             logger.fatal(f"{csrfile} signature is invalid, skipping ❌")
-            exit(1)
+            sys.exit(1)
 
         if not args.enrollment:
             # No enrollment file was provided, rebuild from CSR data
@@ -99,20 +102,20 @@ if __name__ == "__main__":
                 # Only write the enrollment file. Don't validate data against the certificate profile as this option
                 # may be used to correct an incorrect CSR
                 if os.path.isfile(args.write_enrollment):
-                    logger.fatal(f"Cannot write enrollment, file exists. Please remove it first")
-                    exit(1)
+                    logger.fatal(f"Cannot write enrollment, file {args.write_enrollment} exists. Please remove it first")
+                    sys.exit(1)
 
                 with open(args.write_enrollment, "w") as f:
                     yaml.dump(enrollment, f)
 
-                logging.info(f"Wrote enrollment to {args.write_enrollment}")
+                logger.info(f"Wrote enrollment to {args.write_enrollment}")
 
                 continue
         else:
             # Use provided enrollment file
             enrollment = load_yaml(args.enrollment)
 
-        # Validate
+        # Validate enrollment
         subject_profile = load_yaml(enrollment['profile'])
         validate(enrollment, subject_profile)
 
@@ -125,9 +128,9 @@ if __name__ == "__main__":
         issuer_keys = KeyPair(generate_basename(issuer_profile['subject']))
         try:
             issuer_keys.load(password=args.issuer_password)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             logger.fatal(f"Cannot find keys of {issuer_keys} for signing operation, please generate it first")
-            exit(1)
+            sys.exit(1)
 
         cert = sign(subject_profile, enrollment, issuer_profile, subject_keys, issuer_keys, config)
 
@@ -136,7 +139,7 @@ if __name__ == "__main__":
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
 
-        log_issued_cert(cert)
+        log_issued_cert(issuer_keys, subject_keys)
 
         logger.info(f"Certificate issued and saved to {filename}")
 

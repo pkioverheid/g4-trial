@@ -39,7 +39,13 @@ class KeyPair:
         return cls(pathlib.Path(filename).stem)
 
     def exists(self):
-        return os.path.isfile(self.privatekeyfile) or os.path.isfile(self.derfile)
+        return self.private_key_exists() or self.certificate_exists()
+
+    def private_key_exists(self):
+        return os.path.isfile(self.privatekeyfile)
+
+    def certificate_exists(self):
+        return os.path.isfile(self.derfile)
 
     def load(self, password=None):
         if self.public_key:
@@ -104,3 +110,6 @@ class KeyPair:
             c_loaded = " (loaded)"
 
         return f'KeyPair<Private Key={self.privatekeyfile}{p_loaded}, Certificate={self.derfile}{c_loaded}>'
+
+    def __eq__(self, value):
+        return self.basename == value

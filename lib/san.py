@@ -1,11 +1,16 @@
-from cryptography import x509
-from cryptography.x509.oid import ObjectIdentifier
+from typing import Any
 
 from asn1crypto import core
-from asn1crypto.core import Sequence, UTF8String, IA5String, ObjectIdentifier as Asn1ObjectIdentifier
-from asn1crypto.x509 import GeneralNames, AnotherName, EmailAddress, DNSName
-
-from typing import Any
+from asn1crypto.core import IA5String, Sequence, UTF8String
+from asn1crypto.core import ObjectIdentifier as Asn1ObjectIdentifier
+from asn1crypto.x509 import (
+    AnotherName,
+    DNSName,
+    EmailAddress,
+    GeneralNames,
+)
+from cryptography import x509
+from cryptography.x509.oid import ObjectIdentifier
 
 
 def build_san_extension(subjectAltNames: list[dict[str,Any] | str], config) -> list[x509.GeneralName]:
@@ -29,7 +34,7 @@ def build_san_extension(subjectAltNames: list[dict[str,Any] | str], config) -> l
             # Existence of these attributes indicate an OtherName of type AnotherName containing a PermanentIdentifier
 
             class PermanentIdentifier(Sequence):
-                _fields = [
+                _fields = [  # noqa: RUF012
                     ('identifierValue', UTF8String),
                     ('assigner', Asn1ObjectIdentifier)
                 ]
@@ -75,24 +80,18 @@ class PermanentIdentifier(Sequence):
     """
     Define PermanentIdentifier structure according to RFC 4043
     """
-    _fields = [
+    _fields = [  # noqa: RUF012
         ("identifier_value", UTF8String, {"optional": True}),
         ("assigner", Asn1ObjectIdentifier, {"optional": True}),
     ]
 
 
-# Monkey patch to enable deep parsing of AnotherNames
-Asn1ObjectIdentifier._map = {
-    "1.3.6.1.5.5.7.8.3": 'permanent_identifier',
-    "1.3.6.1.4.1.311.20.2.3": 'MSUPN',  
-    "2.5.5.5": 'IA5',
-    "1.3.6.1.4.1.1466.115.121.1.26": 'IA5',
-}
 AnotherName._oid_pair = ('type_id', 'value')
 AnotherName._oid_specs = {
-    'permanent_identifier': PermanentIdentifier,
-    'MSUPN': core.UTF8String,
-    'IA5': core.IA5String
+    '1.3.6.1.5.5.7.8.3': PermanentIdentifier,
+    '1.3.6.1.4.1.311.20.2.3': core.UTF8String,
+    '2.5.5.5': core.IA5String,
+    '1.3.6.1.4.1.1466.115.121.1.26': core.IA5String
 }
 
 
