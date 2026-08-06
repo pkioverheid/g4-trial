@@ -16,7 +16,7 @@ from jschon import JSON, JSONSchema, create_catalog
 from lib.cert import sign
 from lib.chain import write_full_chain
 from lib.csr import verify
-from lib.dn import generate_basename
+from lib.names import generate_basename
 from lib.events import log_issued_cert
 from lib.keypair import KeyPair
 from lib.names import as_dict

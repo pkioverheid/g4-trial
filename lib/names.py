@@ -1,6 +1,5 @@
 import hashlib
 import re
-from collections import Counter
 
 from cryptography.x509 import Name
 from cryptography.x509.oid import NameOID
@@ -11,6 +10,12 @@ class OID:
         self.short_name = short_name
         self.long_name = long_name
         self.oid = oid
+
+    def names(self):
+        return filter(len, [self.short_name, self.long_name, self.oid.dotted_string])
+
+    def __str__(self):
+        return f"OID(short_name={self.short_name}, long_name={self.long_name}, oid={self.oid})"
 
 
 attributes = [
@@ -30,14 +35,25 @@ attributes = [
 ]
 
 
+allowed_attributes = []
+for attribute in attributes:
+    allowed_attributes.extend(attribute.names())
+
+
 def as_name(d: dict):
+
+    for k in d:
+        if k not in allowed_attributes:
+            raise ValueError(f'Unknown attribute name: {k}')
+
     merged = []
-    for k, v in d.items():
-        for attribute in attributes:
-            if k in [attribute.short_name, attribute.long_name, attribute.oid.dotted_string]:
+    for attribute in attributes:
+        for k, v in d.items():
+            if k in attribute.names():
                 merged.append(f'{attribute.oid.dotted_string}={v}')
 
     return Name.from_rfc4514_string(','.join(reversed(merged)))
+
 
 def as_dict(n: Name):
     res = {}
@@ -50,40 +66,16 @@ def as_dict(n: Name):
     return res
 
 
-class BasenameGenerator:
+def generate_basename(dn: dict, fallback=None):
     """
-    Utility class to ensure certificate profiles and enrollments are written to an unique filename
+    Compute the default name used for its issuer by EJBCA
     """
+    if 'CN' in dn and not dn['CN'].startswith("omit"):
+        return re.compile('[^a-zA-Z0-9_]+').sub('', dn['CN'])
 
-    def __init__(self, names):
-        # Find for which certificates will have colliding filenames (which we fix when writing files)
-        self.duplicates = [k for k, v in Counter([self._generate_basename(name) for name in names]).items() if v > 1]
+    if fallback is not None:
+        return fallback
 
-        # Initialize a counter to increment the filename for each certificate
-        self.duplicate_counter = {k: v for v, k in enumerate(self.duplicates, start=1)}
-
-    def get(self, dn: dict):
-        basename = self._generate_basename(dn)
-        if basename not in self.duplicates:
-            return basename
-
-        increment = self.duplicate_counter[basename]
-        self.duplicate_counter[basename] = increment + 1
-        return f'{basename}-{increment}'
-
-    def _generate_basename(self, dn: dict, fallback=None) -> str:
-        """
-        Compute the default name used for its issuer by EJBCA
-        """
-        if 'CN' in dn and not dn['CN'].startswith("omit"):
-            return re.compile('[^a-zA-Z0-9_]+').sub('', dn['CN'])
-
-        if fallback is not None:
-            return fallback
-
-        # Unique hash
-        subject_str = str(dn.items())
-        return "cert_" + hashlib.sha1(subject_str.encode()).hexdigest()[:8]
-
-    def __str__(self):
-        return f"<lib.names.BasenameGenerator having {len(self.duplicates)} duplicates>"
+    # Unique hash
+    subject_str = str(dn.items())
+    return "cert_" + hashlib.sha1(subject_str.encode()).hexdigest()[:8]

@@ -3,7 +3,7 @@ import os
 
 from cryptography.hazmat.primitives import serialization
 
-from .dn import generate_basename
+from .names import generate_basename
 from .keypair import KeyPair
 from .util import load_yaml
 
