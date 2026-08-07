@@ -3,8 +3,8 @@ import os
 
 from cryptography.hazmat.primitives import serialization
 
-from .names import generate_basename
 from .keypair import KeyPair
+from .names import generate_basename
 from .util import load_yaml
 
 logger = logging.getLogger(__name__)

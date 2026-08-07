@@ -2,8 +2,8 @@ import argparse
 import logging
 import sys
 
-from lib.util import load_yaml
 from lib import crl
+from lib.util import load_yaml
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("generate-crl")

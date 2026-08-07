@@ -5,6 +5,7 @@ import os
 import sys
 
 import yaml
+from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import (
     ExtensionNotFound,
@@ -16,10 +17,9 @@ from jschon import JSON, JSONSchema, create_catalog
 from lib.cert import sign
 from lib.chain import write_full_chain
 from lib.csr import verify
-from lib.names import generate_basename
 from lib.events import log_issued_cert
 from lib.keypair import KeyPair
-from lib.names import as_dict
+from lib.names import as_dict, generate_basename
 from lib.ra import validate
 from lib.san import read_generalnames
 from lib.util import load_yaml
@@ -73,12 +73,17 @@ if __name__ == "__main__":
 
         logger.info(f"Processing {csrfile}")
 
-        # Rebuild enrollment data to we can verify
         with open(csrfile, "rb") as f:
             csr = load_pem_x509_csr(f.read())
 
-        if not verify(csr):
-            logger.fatal(f"{csrfile} signature is invalid, skipping ❌")
+        # Verify the CSR
+        try:
+            verify(csr)
+        except InvalidSignature:
+            logger.fatal(f"{csrfile} signature is invalid, exiting ❌")
+            sys.exit(1)
+        except UnsupportedAlgorithm:
+            logger.fatal(f"{csrfile} signature algorithm is not supported, exiting ❌")
             sys.exit(1)
 
         if not args.enrollment:

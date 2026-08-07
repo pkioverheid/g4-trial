@@ -2,7 +2,7 @@ import os
 import sys
 
 import yaml
-from jschon import create_catalog, JSONSchema, JSON
+from jschon import JSON, JSONSchema, create_catalog
 
 
 def force_int(value):
@@ -94,7 +94,7 @@ def load_config():
     if not result.valid:
         print(f"Configuration file {filename} is invalid: ")
         output_errors(result.output("detailed")["errors"])
-        exit(1)
+        raise SyntaxError(f"Configuration file {filename} is invalid")
 
     # Only write file if validation passed, to avoid overwriting with invalid data
     with open(filename, "w") as f:

@@ -1,6 +1,7 @@
 import hashlib
 import re
 
+from asn1crypto.x509 import NameType
 from cryptography.x509 import Name
 from cryptography.x509.oid import NameOID
 
@@ -11,11 +12,14 @@ class OID:
         self.long_name = long_name
         self.oid = oid
 
+        # Dynamically locate the snake_name from asn1crypto
+        self.snake_name = NameType._map[oid.dotted_string]
+
     def names(self):
-        return filter(len, [self.short_name, self.long_name, self.oid.dotted_string])
+        return filter(len, [self.short_name, self.long_name, self.snake_name, self.oid.dotted_string])
 
     def __str__(self):
-        return f"OID(short_name={self.short_name}, long_name={self.long_name}, oid={self.oid})"
+        return f"OID(short_name={self.short_name}, long_name={self.long_name}, snake_name={self.snake_name}, oid={self.oid})"
 
 
 attributes = [

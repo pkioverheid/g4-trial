@@ -1,10 +1,14 @@
-#!/usr/bin/env python3
+import os
 import unittest
-from cryptography import x509
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509 import ObjectIdentifier, RFC822Name, OtherName, DNSName, load_pem_x509_csr, SubjectAlternativeName
-from cryptography.hazmat.primitives import hashes
+
+from cryptography.x509 import (
+    DNSName,
+    ObjectIdentifier,
+    OtherName,
+    RFC822Name,
+    SubjectAlternativeName,
+    load_pem_x509_csr,
+)
 
 from lib.san import build_san_extension, read_generalnames
 
@@ -48,7 +52,7 @@ class TestSANFunctions(unittest.TestCase):
 
     def test_read_generalnames(self):
 
-        csrfile = "testdata/csr_with_sans.csr"
+        csrfile = os.path.join("testdata","csr","csr_with_sans.pem")
         with open(csrfile, "rb") as f:
             csr = load_pem_x509_csr(f.read())
 

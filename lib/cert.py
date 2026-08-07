@@ -1,19 +1,18 @@
 import logging
 import os
 import re
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import UnrecognizedExtension
-
 from cryptography.x509.oid import ObjectIdentifier
 
-from .qc_statements import build_qc_statements_extension
-from .names import as_name
 from .events import log_issued_cert
 from .keypair import KeyPair, get_hash_algo
+from .names import as_name
+from .qc_statements import build_qc_statements_extension
 from .ra import validate
 from .san import build_san_extension
 from .util import force_int, keys_exist, load_yaml
@@ -173,32 +172,38 @@ def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issue
                 # assume date time format as string
                 not_after = datetime.fromisoformat(profile['validity']['notAfter'])
 
-    # Generate a random Serial number
+    # Generate a random Serial number (20 octets)
     serial_number = int.from_bytes(os.urandom(20), "big") >> 1
 
-    # Hash algorithm
-    hash_algo = get_hash_algo(profile['hashAlgorithm'])
-
     # Certificate Builder
-    builder = x509.CertificateBuilder()
-    builder = builder.subject_name(as_name(enrollment['subject']))
-    builder = builder.issuer_name(issuer_name)
-    builder = builder.public_key(subject_keys.public_key)
-    builder = builder.serial_number(serial_number)
-    builder = builder.not_valid_before(not_before)
-    builder = builder.not_valid_after(not_after)
-
-    # Build Extensions
+    builder = (
+        x509.CertificateBuilder()
+        .subject_name(as_name(enrollment['subject']))
+        .issuer_name(issuer_name)
+        .public_key(subject_keys.public_key)
+        .serial_number(serial_number)
+        .not_valid_before(not_before)
+        .not_valid_after(not_after)
+    )
+    
+    # Build extensions
     builder = handle_extensions(builder, profile['extensions'], enrollment, subject_keys, issuer_keys, config)
 
+    # Crypto parameter selection
+    hash_algo = None
+    rsa_padding = None
+    if profile['signatureAlgorithm'] == 'rsassaPss':
+        hash_algo = get_hash_algo(profile['hashAlgorithm'])
+        rsa_padding = padding.PSS(
+                            mgf=padding.MGF1(hash_algo),
+                            salt_length=force_int(profile.get('saltLength', 64))
+                        )
+        
     # Sign certificate
     cert = builder.sign(
         private_key=issuer_keys.private_key,
         algorithm=hash_algo,
-        rsa_padding=padding.PSS(
-            mgf=padding.MGF1(hash_algo),
-            salt_length=force_int(profile.get('saltLength', 64))
-        )
+        rsa_padding=rsa_padding
     )
 
     subject_keys.certificate = cert

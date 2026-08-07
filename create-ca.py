@@ -2,11 +2,10 @@ import logging
 import sys
 from pathlib import Path
 
-from lib import cert
-from lib import crl
+from lib import cert, crl
 from lib.domains import verify
 from lib.keypair import KeyPair
-from lib.util import load_yaml, choose, load_config
+from lib.util import choose, load_config, load_yaml
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("create-ca")
@@ -17,7 +16,7 @@ def main():
 
     options = load_yaml("domains.yaml")['domains']
     if not verify(options):
-        exit(1)
+        sys.exit(1)
 
     hierarchy = choose("Choose a domain:", list(options.keys()))
 
@@ -32,7 +31,7 @@ def main():
         cert.process(profile, enrollment, subject_keys, config)
         crl.process(revocationfile, config, force=True)
 
-    print(f'To automate this step, run next time:')
+    print('To automate this step, run next time:')
     filenames = "\' \'".join(enrollmentfiles)
     print(f'python generate-cert.py \'{filenames}\'')
     filenames = "\' \'".join([str(f) for f in revocationfiles])
