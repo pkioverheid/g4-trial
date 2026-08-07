@@ -1,9 +1,7 @@
 import logging
 import unittest
 
-from lib.ca import lookup
-
-from lib.events import _log_issued_cert, configure_logger
+from lib.events import _log_issued_cert, configure_logger, lookup
 
 
 class TestCA(unittest.TestCase):
