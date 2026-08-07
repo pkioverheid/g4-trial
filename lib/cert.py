@@ -11,7 +11,7 @@ from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
 
 from .qc_statements import build_qc_statements_extension
-from .dn import as_name
+from .names import as_name
 from .events import log_issued_cert
 from .keypair import KeyPair, get_hash_algo
 from .ra import validate
