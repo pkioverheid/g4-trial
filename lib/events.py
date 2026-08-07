@@ -10,11 +10,6 @@ from .keypair import KeyPair
 
 LOG_FILENAME = os.path.join(BASEDIR, 'events.txt')
 
-# Ensure our output directories exist
-for dir in [BASEDIR, os.path.join(BASEDIR, 'private'), os.path.join(BASEDIR, 'certs')]:
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-
 
 def configure_logger(logger, log_filename=LOG_FILENAME):
     file_handler = logging.FileHandler(filename=log_filename)
