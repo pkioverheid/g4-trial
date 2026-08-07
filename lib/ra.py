@@ -1,6 +1,6 @@
 import logging
 
-from jschon import create_catalog, JSON, JSONSchema
+from jschon import JSON, JSONSchema, create_catalog
 
 from .util import output_errors
 
@@ -18,6 +18,6 @@ def validate(enrollment: dict, profile: dict):
     schema = JSONSchema(profile['validations'])
     result = schema.evaluate(JSON(enrollment))
     if not result.valid:
-        logger.fatal(f"Enrollment is invalid for specified certificate profile ❌")
+        logger.fatal("Enrollment is invalid for specified certificate profile ❌")
         output_errors(result.output("detailed")["errors"])
-        exit(1)
+        raise ValueError("Enrollment is invalid for specified certificate profile")

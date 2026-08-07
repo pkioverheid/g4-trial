@@ -2,12 +2,15 @@ import logging
 import os
 
 from cryptography import x509
-from cryptography.exceptions import InvalidSignature
+from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed25519, ed448, padding, rsa
-from cryptography.x509 import CertificateSigningRequestBuilder, CertificateSigningRequest
+from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, padding, rsa
+from cryptography.x509 import (
+    CertificateSigningRequest,
+    CertificateSigningRequestBuilder,
+)
 
-from .keypair import get_hash_algo, KeyPair
+from .keypair import KeyPair, get_hash_algo
 from .names import as_name
 from .ra import validate
 from .san import build_san_extension
@@ -59,7 +62,7 @@ def verify(csr: CertificateSigningRequest) -> bool:
         elif isinstance(pub, (ed25519.Ed25519PublicKey, ed448.Ed448PublicKey)):
             pub.verify(sig, data)
         else:
-            raise Exception("Unsupported signature algorithm")
+            raise UnsupportedAlgorithm(f"Unsupported signature algorithm {type(pub)}")
         return True
     except InvalidSignature:
         return False

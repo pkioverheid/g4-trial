@@ -1,13 +1,24 @@
 import logging
 import os
 import pathlib
+from enum import StrEnum
 
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
+from cryptography.exceptions import UnsupportedAlgorithm
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509 import load_der_x509_certificate, CertificateSigningRequest
+from cryptography.x509 import (
+    CertificateSigningRequest,
+    load_der_x509_certificate,
+    load_pem_x509_certificate,
+)
 
+from .config import BASEDIR
 from .util import force_int
+
+
+class Crypto(StrEnum):
+    RSA = "rsaEncryption"
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +33,13 @@ def get_hash_algo(name):
 
 class KeyPair:
 
-    BASEDIR = 'ca'
+    privatekeyfile = property(lambda self: os.path.join(self.basedir, 'private', f'{self.basename}.key'))
+    derfile = property(lambda self: os.path.join(self.basedir, 'certs', f'{self.basename}.cer'))
+    pemfile = property(lambda self: os.path.join(self.basedir, 'certs', f'{self.basename}.pem'))
 
-    privatekeyfile = property(lambda self: os.path.join(self.BASEDIR, 'private', f'{self.basename}.key'))
-    derfile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.cer'))
-    pemfile = property(lambda self: os.path.join(self.BASEDIR, 'certs', f'{self.basename}.pem'))
-
-    def __init__(self, basename):
+    def __init__(self, basename, basedir=BASEDIR):
         self.basename = basename
+        self.basedir = basedir
         self.certificate = None
         self.private_key = None
         self.public_key = None
@@ -38,48 +48,63 @@ class KeyPair:
     def for_filename(cls, filename):
         return cls(pathlib.Path(filename).stem)
 
-    def exists(self):
+    def exists(self) -> bool:
         return self.private_key_exists() or self.certificate_exists()
 
-    def private_key_exists(self):
+    def private_key_exists(self) -> bool:
         return os.path.isfile(self.privatekeyfile)
 
-    def certificate_exists(self):
-        return os.path.isfile(self.derfile)
+    def certificate_exists(self) -> bool:
+        return os.path.isfile(self.derfile) or os.path.isfile(self.pemfile)
 
     def load(self, password=None):
         if self.public_key:
-            logger.debug(f"Public Key already loaded")
-        else:
-            if not self.private_key:
-                with open(self.privatekeyfile, "rb") as f:
-                    if password:
-                        password = password.encode("utf-8")
-                    self.private_key = serialization.load_pem_private_key(f.read(), password=password)
-            if not self.certificate:
-                with open(self.derfile, "rb") as f:
-                    # Load the certificate and extract the public key
-                   self.certificate = load_der_x509_certificate(f.read())
-                   self.public_key = self.certificate.public_key()
+            logger.debug("Public Key already loaded")
 
-            logger.debug(f"Loaded private key and certificate files")
+        if not self.private_key:
+            self._load_private_key(password)
+
+        if not self.certificate:
+            self._load_certificate()
+
+        logger.debug("Loaded private key and certificate files")
+
+        return self
+
+    def _load_private_key(self, password: str | None = None):
+        with open(self.privatekeyfile, "rb") as f:
+            if password:
+                password = password.encode("utf-8")
+            self.private_key = serialization.load_pem_private_key(f.read(), password=password)
+        return self
+
+    def _load_certificate(self):
+        # Load the certificate and extract the public key
+        try:
+            with open(self.derfile, "rb") as f:
+                self.certificate = load_der_x509_certificate(f.read())
+        except FileNotFoundError:
+            with open(self.pemfile, "rb") as f:
+                self.certificate = load_pem_x509_certificate(f.read())
+
+        self.public_key = self.certificate.public_key()
         return self
 
     def generate_private_key(self, profile:dict, password=None):
-        logger.info(f"Generating keypair")
-        self.private_key = rsa.generate_private_key(
-            public_exponent=force_int(profile['exponent']),
-            key_size=force_int(profile['publicKeyLength'])
-        )
+        publicKeyAlgorithm = profile['publicKeyAlgorithm']
+        
+        match publicKeyAlgorithm:
+            case Crypto.RSA:
+                self.private_key = rsa.generate_private_key(
+                    public_exponent=force_int(profile['exponent']),
+                    key_size=force_int(profile['publicKeyLength'])
+                )
+            case _:
+                raise UnsupportedAlgorithm(f"Unsupported publicKeyAlgorithm {publicKeyAlgorithm}")
+
+        logger.info(f"Generated keypair using {publicKeyAlgorithm}")
+        
         self.public_key = self.private_key.public_key()
-
-        newpath = os.path.join(self.BASEDIR, 'private')
-        if not os.path.exists(newpath):
-            os.makedirs(newpath)
-
-        newpath = os.path.join(self.BASEDIR, 'certs')
-        if not os.path.exists(newpath):
-            os.makedirs(newpath)
 
         logger.debug(f"Saving private key to {self.privatekeyfile}")
 
@@ -91,15 +116,15 @@ class KeyPair:
         with open(self.privatekeyfile, "wb") as f:
             f.write(self.private_key.private_bytes(
                 serialization.Encoding.PEM,
-                serialization.PrivateFormat.TraditionalOpenSSL,
+                serialization.PrivateFormat.PKCS8,
                 encryption_algorithm=encryption
             ))
 
     def load_from_csr(self, csr: CertificateSigningRequest):
         if self.private_key or self.public_key:
-            raise ValueError(f'Some keys are already loaded, not overriding them from CSR.')
+            raise ValueError('Some keys are already loaded, not overriding them from CSR.')
         self.public_key = csr.public_key()
-        logger.info(f"Loaded public key from CSR")
+        logger.info("Loaded public key from CSR")
 
     def __str__(self):
         p_loaded = ""

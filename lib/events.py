@@ -5,12 +5,10 @@ import os
 from cryptography import x509
 from cryptography.x509.extensions import AuthorityKeyIdentifier
 
-from lib.keypair import KeyPair
+from .config import BASEDIR
+from .keypair import KeyPair
 
-if not os.path.isdir('ca'):
-    os.mkdir('ca')
-
-LOG_FILENAME = os.path.join('ca', 'events.txt')
+LOG_FILENAME = os.path.join(BASEDIR, 'events.txt')
 
 
 def configure_logger(logger, log_filename=LOG_FILENAME):
@@ -56,4 +54,4 @@ def lookup(issuer_dn: str, serial_number: int, logfile=LOG_FILENAME) -> str:
             if row[5] == issuer_dn and row[7] == str(serial_number):
                 return row[4],row[8]
 
-    raise ValueError("Certificate not found")
+    raise ValueError(f"Certificate with serial number {serial_number} issued by {issuer_dn} not found")

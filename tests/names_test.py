@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
 import unittest
+
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 

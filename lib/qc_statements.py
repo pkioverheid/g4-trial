@@ -1,12 +1,19 @@
-from asn1crypto.core import Sequence, SequenceOf, ObjectIdentifier, IA5String, PrintableString, Any
+from asn1crypto.core import (
+    Any,
+    IA5String,
+    ObjectIdentifier,
+    PrintableString,
+    Sequence,
+    SequenceOf,
+)
 
 
 class SemanticsInformation(Sequence):
-    _fields = [('semanticsIdentifier', ObjectIdentifier)]
+    _fields = [('semanticsIdentifier', ObjectIdentifier)] # noqa: RUF012
 
 
 class QCStatement(Sequence):
-    _fields = [
+    _fields = [ # noqa: RUF012
         ('statementId', ObjectIdentifier),
         ('statementInfo', Any, {'optional': True})
     ]
@@ -21,7 +28,7 @@ class QcTypeSyntax(SequenceOf):
 
 
 class PdsLocation(Sequence):
-    _fields = [
+    _fields = [  # noqa: RUF012
         ('url', IA5String),
         ('language', PrintableString)
     ]
