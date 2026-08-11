@@ -1,0 +1,10 @@
+---
+profile: testdata/G4TRIALEEEUTLGSigsLP2025_profile.yaml
+subject:
+  C: NL
+  O: TRIAL Company name
+  CN: TRIAL Company name
+  organizationIdentifier: NTRNL-99999991
+  serialNumber: 00000099999999910000
+subjectAltNames:
+  - example.com

@@ -59,8 +59,8 @@ def build_qc_statements_extension(qc_data, config: Config) -> bytes:
             case 'id-etsi-qcs-QcPDS':
                 loc = config.pds_location
 
-                url = item['value']['url'].format(loc.get('url'))
-                language = item['value']['language'].format(loc.get('language'))
+                url = item['value']['url'].format(loc.url)
+                language = item['value']['language'].format(loc.language)
 
                 pds_loc = PdsLocations([
                     PdsLocation({'url': url, 'language': language})
