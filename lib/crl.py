@@ -9,7 +9,8 @@ from cryptography.x509 import ReasonFlags, load_der_x509_crl
 from cryptography.x509.extensions import BasicConstraints
 from jschon import create_catalog, JSON, JSONSchema
 
-from .events import log_signed_crl
+from .config import Config
+from .events import Eventlog
 from .keypair import KeyPair
 from .util import force_int, load_yaml, output_errors
 
@@ -134,6 +135,7 @@ def process(revocationfile, config, force=False, issuer_password=None):
     with open(filename, "wb") as f:
         f.write(crl.public_bytes(serialization.Encoding.DER))
 
-    log_signed_crl(crl)
+    log = Eventlog(Config.from_yaml("config.yaml"))
+    log.log_signed_crl(crl)
 
     logger.info(f"Signed CRL with number {current_crl_number+1} containing {len(profile['revocations'])} revocations and saved to {filename}")

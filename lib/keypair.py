@@ -57,7 +57,7 @@ class KeyPair:
     def certificate_exists(self) -> bool:
         return os.path.isfile(self.derfile) or os.path.isfile(self.pemfile)
 
-    def load(self, password=None):
+    def load(self, password=None) -> "KeyPair":
         if self.public_key:
             logger.debug("Public Key already loaded")
 
@@ -71,14 +71,14 @@ class KeyPair:
 
         return self
 
-    def _load_private_key(self, password: str | None = None):
+    def _load_private_key(self, password: str | None = None) -> "KeyPair":
         with open(self.privatekeyfile, "rb") as f:
             if password:
                 password = password.encode("utf-8")
             self.private_key = serialization.load_pem_private_key(f.read(), password=password)
         return self
 
-    def _load_certificate(self):
+    def _load_certificate(self) -> "KeyPair":
         # Load the certificate and extract the public key
         try:
             with open(self.derfile, "rb") as f:
@@ -90,7 +90,7 @@ class KeyPair:
         self.public_key = self.certificate.public_key()
         return self
 
-    def generate_private_key(self, profile:dict, password=None):
+    def generate_private_key(self, profile:dict, password=None) -> "KeyPair":
         publicKeyAlgorithm = profile['publicKeyAlgorithm']
         
         match publicKeyAlgorithm:
@@ -120,11 +120,17 @@ class KeyPair:
                 encryption_algorithm=encryption
             ))
 
-    def load_from_csr(self, csr: CertificateSigningRequest):
+        return self
+
+    def load_from_csr(self, csr: CertificateSigningRequest) -> "KeyPair":
         if self.private_key or self.public_key:
             raise ValueError('Some keys are already loaded, not overriding them from CSR.')
+
         self.public_key = csr.public_key()
+
         logger.info("Loaded public key from CSR")
+
+        return self
 
     def __str__(self):
         p_loaded = ""

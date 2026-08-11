@@ -2,6 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
+    "logFilename": {
+      "type": "string",
+      "description": "Filename of the CA log. This file will contain CA events, such as certificate issuance."
+    },
     "caIssuersBaseUrl": {
       "type": "string",
       "format": "uri",
@@ -32,6 +36,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["caIssuersBaseUrl", "cRLDistributionPointsBaseUrl", "crlRenewalHours", "pdsLocation"],
+  "required": ["logFilename", "caIssuersBaseUrl", "cRLDistributionPointsBaseUrl", "crlRenewalHours", "pdsLocation"],
   "additionalProperties": false
 }

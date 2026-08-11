@@ -16,8 +16,9 @@ from jschon import JSON, JSONSchema, create_catalog
 
 from lib.cert import sign
 from lib.chain import write_full_chain
+from lib.config import Config
 from lib.csr import verify
-from lib.events import log_issued_cert
+from lib.events import Eventlog
 from lib.keypair import KeyPair
 from lib.names import as_dict, generate_basename
 from lib.ra import validate
@@ -144,7 +145,8 @@ if __name__ == "__main__":
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
 
-        log_issued_cert(issuer_keys, subject_keys)
+        log = Eventlog(Config.from_yaml("config.yaml"))
+        log.log_issued_cert(issuer_keys, subject_keys)
 
         logger.info(f"Certificate issued and saved to {filename}")
 
