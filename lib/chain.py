@@ -29,7 +29,7 @@ def write_full_chain(subject_keys: KeyPair, leaf_profile: dict) -> None:
             issuer_basename = generate_basename(issuer_enrollment['subject'])
 
             # Load and write the key pair of the issuer
-            issuer_keys = KeyPair.for_filename(issuer_basename).load()
+            issuer_keys = KeyPair.for_filename(subject_keys.base_dir, issuer_basename).load()
 
             if issuer_profile['issuer'] == f'{issuer_basename}.yaml':
                 # Write the Root its own PEM file

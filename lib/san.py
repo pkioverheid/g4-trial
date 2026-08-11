@@ -13,7 +13,7 @@ from cryptography import x509
 from cryptography.x509.oid import ObjectIdentifier
 
 
-def build_san_extension(subjectAltNames: list[dict[str,Any] | str], config) -> list[x509.GeneralName]:
+def build_san_extension(subjectAltNames: list[dict[str,Any] | str]) -> list[x509.GeneralName]:
     """
     Encodes SubjectAlternateNames
     """

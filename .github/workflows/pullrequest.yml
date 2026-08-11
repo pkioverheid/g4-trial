@@ -165,8 +165,7 @@ jobs:
 
       - name: Create Hierarchy
         run: |
-          python generate-cert.py "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml"
-          python generate-cert.py "enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
+          python generate-cert.py "enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml" "enrollment/TRIALPKIoverheidG4IntmPrivGTLSSYS2024.yaml"
 
       - name: Sign TSP CSR
         run: |

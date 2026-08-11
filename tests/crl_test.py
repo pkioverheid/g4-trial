@@ -5,7 +5,9 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from lib.crl import generate_crl
+from lib.config import Config
+from lib.crl import CRLService
+from lib.events import Eventlog
 from lib.keypair import KeyPair
 
 
@@ -44,8 +46,11 @@ class TestGenerateCrl(unittest.TestCase):
             certificate=cls.certificate,
         )
 
+        config = Config()
+        cls.service = CRLService(config, Eventlog(config))
+
     def test_empty_revocations(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[],
             ca_keys=self.ca_keys,
         )
@@ -64,7 +69,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_crl_number(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[],
             ca_keys=self.ca_keys,
             crl_number=42,
@@ -80,7 +85,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_renewal_period(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[],
             ca_keys=self.ca_keys,
             renewal_hours=48,
@@ -96,7 +101,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_revoked_certificate(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[
                 {
                     "serialNumber": "1234",
@@ -117,7 +122,7 @@ class TestGenerateCrl(unittest.TestCase):
     def test_revocation_date_as_datetime(self):
         revocation_date = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[
                 {
                     "serialNumber": "1234",
@@ -137,7 +142,7 @@ class TestGenerateCrl(unittest.TestCase):
     def test_revocation_date_as_string(self):
         revocation_date = "2026-01-01T12:00:00"
 
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[
                 {
                     "serialNumber": "1234",
@@ -155,7 +160,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_default_revocation_reason(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[
                 {
                     "serialNumber": "1234",
@@ -174,7 +179,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_revocation_reason(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[
                 {
                     "serialNumber": "1234",
@@ -194,7 +199,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_multiple_revocations(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[
                 {"serialNumber": "1"},
                 {"serialNumber": "2"},
@@ -210,7 +215,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_authority_key_identifier(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[],
             ca_keys=self.ca_keys,
         )
@@ -229,7 +234,7 @@ class TestGenerateCrl(unittest.TestCase):
         )
 
     def test_crl_is_signed_by_ca(self):
-        crl = generate_crl(
+        crl = self.service.generate(
             revocations=[],
             ca_keys=self.ca_keys,
         )

@@ -2,69 +2,84 @@ import logging
 import os
 
 from cryptography import x509
-from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, padding, rsa
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import (
     CertificateSigningRequest,
     CertificateSigningRequestBuilder,
+    ExtensionNotFound,
+    SubjectAlternativeName,
 )
 
-from .keypair import KeyPair, get_hash_algo
-from .names import as_name
-from .ra import validate
-from .san import build_san_extension
-from .util import force_int
+from lib.keypair import KeyPair, get_hash_algo
+from lib.names import as_dict, as_name
+from lib.san import build_san_extension, read_generalnames
+from lib.util import force_int
 
 logger = logging.getLogger(__name__)
 
 
-def create_csr(profile: dict, enrollment: dict, subject_keys: KeyPair, password=None):
-    if not subject_keys.private_key:
-        if os.path.exists(subject_keys.privatekeyfile):
-            raise FileExistsError(subject_keys.privatekeyfile)
+class RequestService:
 
-        if password:
-            password.encode("UTF-8")
-        subject_keys.generate_private_key(profile, password=password)
+    def __init__(self, config, event_log):
+        self.config = config
+        self.event_log = event_log
 
-    hash_algo = get_hash_algo(profile['hashAlgorithm'])
+    def create(self, profile: dict, enrollment: dict, subject_keys: KeyPair, password=None) -> CertificateSigningRequest:
+        if not subject_keys.private_key:
+            if os.path.exists(subject_keys.privatekeyfile):
+                raise FileExistsError(subject_keys.privatekeyfile)
 
-    builder = CertificateSigningRequestBuilder().subject_name(as_name(enrollment['subject']))
+            if password:
+                password.encode("UTF-8")
 
-    if 'subjectAltNames' in enrollment:
-        builder = builder.add_extension(
-                x509.SubjectAlternativeName(
-                build_san_extension(enrollment['subjectAltNames'], {})
-            ),
-            critical=False
-        )
+            subject_keys.generate_private_key(profile, password=password)
 
-    return builder.sign(subject_keys.private_key,
-                        algorithm=hash_algo,
-                        rsa_padding=padding.PSS(
-                            mgf=padding.MGF1(hash_algo),
-                            salt_length=force_int(profile.get('saltLength', 64))
-                        ))
+        hash_algo = get_hash_algo(profile['hashAlgorithm'])
 
+        builder = (
+            CertificateSigningRequestBuilder()
+            .subject_name(as_name(enrollment['subject']))
+            )
 
-def verify(csr: CertificateSigningRequest) -> None:
-    """
-    Verifies whether the CSR is acceptable to us. Raises an
-    exception if it fails. 
-    """
-    if not csr.is_signature_valid:
-        raise InvalidSignature()
+        if 'subjectAltNames' in enrollment:
+            builder = builder.add_extension(
+                    x509.SubjectAlternativeName(
+                    build_san_extension(enrollment['subjectAltNames'])
+                ),
+                critical=False
+            )
 
+        return builder.sign(subject_keys.private_key,
+                            algorithm=hash_algo,
+                            rsa_padding=padding.PSS(
+                                mgf=padding.MGF1(hash_algo),
+                                salt_length=force_int(profile.get('saltLength', 64))
+                            ))
 
-def process(profile: dict, enrollment: dict, keypair: KeyPair, subject_password=None) -> None:
-    validate(enrollment, profile)
+    def verify(csr: CertificateSigningRequest) -> None:
+        """
+        Verifies whether the CSR is acceptable to us. Raises an
+        exception if it fails. 
+        """
+        if not csr.is_signature_valid:
+            raise InvalidSignature()
 
-    csr = create_csr(profile, enrollment, keypair, password=subject_password)
+    def rebuild_enrollment(self, csr: CertificateSigningRequest) -> dict:
+        """
+        From specified CSR, attempt to rebuild the enrollment data.
+        """
 
-    csr_path = f"{keypair.basename}.csr"
-    with open(csr_path, "wb") as f:
-        f.write(csr.public_bytes(serialization.Encoding.PEM))
+        enrollment = {
+            'subject': as_dict(csr.subject)
+        }
 
-    logger.info(f"Private key written to {keypair.privatekeyfile}")
-    logger.info(f"CSR written to {csr_path}")
+        # If present, rebuild internal representation of the included SAN
+        try:
+            ext = csr.extensions.get_extension_for_class(SubjectAlternativeName)
+            enrollment['subjectAltNames'] = read_generalnames(ext.value.public_bytes())
+            logger.debug(f"CSR contained {len(enrollment['subjectAltNames'])} SANs.")
+        except ExtensionNotFound:
+            pass
+
+        return enrollment

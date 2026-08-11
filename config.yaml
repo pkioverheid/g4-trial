@@ -4,4 +4,5 @@ crlRenewalHours: 48
 pdsLocation:
   url: https://www.github.com/pkioverheid/g4-trial
   language: en
-logFilename: ca/events.txt
+baseDir: ca
+logFilename: events.txt

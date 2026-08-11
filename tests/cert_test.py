@@ -21,16 +21,20 @@ from cryptography.x509 import (
     UniformResourceIdentifier,
 )
 
-from lib.cert import sign
+from lib.cert import IssueService
 from lib.config import Config
+from lib.events import Eventlog
 from lib.keypair import KeyPair
 
 
 class TestCert(unittest.TestCase):
 
-    def test_sign(self):
+    @classmethod
+    def setUpClass(cls):
+        cls.config = Config(base_dir="__test").init()
+        cls.service = IssueService(cls.config, Eventlog(cls.config))
 
-        config = Config()
+    def test_sign(self):
 
         with open("testdata/G4TRIALEEEUTLGSigsLP2025_profile.yaml") as f:
             profile = yaml.safe_load(f)
@@ -38,10 +42,10 @@ class TestCert(unittest.TestCase):
         with open("testdata/G4TRIALEEEUTLGSigsLP2025_enrollment.yaml") as f:
             enrollment = yaml.safe_load(f)
 
-        subject_keys = KeyPair.for_filename("test").generate_private_key(profile)
+        subject_keys = KeyPair.for_filename(self.config.base_dir, "test").generate_private_key(profile)
         issuer_keys = subject_keys
 
-        cert = sign(profile, enrollment, enrollment, subject_keys, issuer_keys, config)
+        cert = self.service.sign(profile, enrollment, enrollment, subject_keys, issuer_keys)
 
         self.assertEqual(cert.public_key(), subject_keys.public_key)
         self.assertEqual(
