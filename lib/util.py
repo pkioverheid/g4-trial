@@ -1,8 +1,6 @@
-import os
 import sys
 
 import yaml
-from jschon import JSON, JSONSchema, create_catalog
 
 
 def force_int(value):
@@ -64,40 +62,3 @@ def choose(prompt, options):
             return options[int(choice) - 1]
         else:
             print("Invalid choice. Try again.")
-
-
-def load_config():
-    filename = "config.yaml"
-
-    try:
-        config = load_yaml(filename) or {}
-    except FileNotFoundError:
-        config = {}
-
-    defaults = {
-        "caIssuersBaseUrl": "http://cert.pkioverheid.nl",
-        "cRLDistributionPointsBaseUrl": "http://crl.pkioverheid.nl",
-        "crlRenewalHours": 48,
-        "pdsLocation": {
-            "url": "https://www.github.com/pkioverheid/g4-trial",
-            "language": "en",
-        },
-    }
-    defaults.update(config)
-    config = defaults
-
-    create_catalog("2020-12")
-    schema = JSONSchema.loadf(os.path.join('schema', 'config.json'))
-
-    instance = JSON(config)
-    result = schema.evaluate(instance)
-    if not result.valid:
-        print(f"Configuration file {filename} is invalid: ")
-        output_errors(result.output("detailed")["errors"])
-        raise SyntaxError(f"Configuration file {filename} is invalid")
-
-    # Only write file if validation passed, to avoid overwriting with invalid data
-    with open(filename, "w") as f:
-        yaml.safe_dump(config, f, sort_keys=False)
-
-    return config

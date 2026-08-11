@@ -9,7 +9,8 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
 
-from .events import log_issued_cert
+from .config import Config
+from .events import Eventlog
 from .keypair import KeyPair, get_hash_algo
 from .names import as_name
 from .qc_statements import build_qc_statements_extension
@@ -249,6 +250,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
     with open(filename, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.DER))
 
-    log_issued_cert(issuer_keys, subject_keys)
+    log = Eventlog(Config.from_yaml("config.yaml"))
+    log.log_issued_cert(issuer_keys, subject_keys)
 
     logger.info(f"Certificate issued and saved to {filename}")
