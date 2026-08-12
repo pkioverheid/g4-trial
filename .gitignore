@@ -1,3 +1,5 @@
 /ca/
 __pycache__
 /*.csr
+.coverage
+__test

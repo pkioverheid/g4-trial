@@ -77,7 +77,7 @@ if __name__ == "__main__":
         with open(csrfile, "rb") as f:
             csr = load_pem_x509_csr(f.read())
 
-        # Verify the CSR
+        # Verify the CSR cryptografically
         try:
             verify(csr)
         except InvalidSignature:
@@ -88,13 +88,13 @@ if __name__ == "__main__":
             sys.exit(1)
 
         if not args.enrollment:
-            # No enrollment file was provided, rebuild from CSR data
+            # No enrollment file was provided, rebuild from CSR data to allow verification one set of code
             enrollment = {
                 'profile': 'tbd',
                 'subject': as_dict(csr.subject)
             }
 
-            # Rebuild internal representation of the included SAN to allow validation
+            # If present, rebuild SANs
             try:
                 ext = csr.extensions.get_extension_for_class(SubjectAlternativeName)
                 enrollment['subjectAltNames'] = read_generalnames(ext.value.public_bytes())
@@ -102,6 +102,7 @@ if __name__ == "__main__":
             except ExtensionNotFound:
                 pass
 
+            # Use or find a matching certificate profile
             enrollment['profile'] = args.profile or find_profile(enrollment)
 
             if args.write_enrollment:
