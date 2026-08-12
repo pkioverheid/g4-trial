@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Union
 
 from cryptography import x509
@@ -139,10 +139,16 @@ def _parse_date_str(input: Union[str | datetime]) -> datetime:
         # Absolute date in the correct type
         return input
     elif input == 'now':
-        return datetime.now(UTC)
+        return datetime.now(timezone.utc)
 
     # assume date time format as string: parse
-    return datetime.fromisoformat(input)
+    d = datetime.fromisoformat(input)
+
+    # If no timezone was included, assume UTC
+    if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
+        return d.replace(tzinfo=timezone.utc)
+
+    return d
 
 
 def _parse_not_after(input: Union[str | datetime], not_before: datetime, issuer_not_valid_after: Union[datetime | None]) -> datetime:
@@ -164,7 +170,7 @@ def _parse_not_after(input: Union[str | datetime], not_before: datetime, issuer_
         return not_before + timedelta(days=int(match.group(1)), seconds=-1)
     
     # Assume date time formated as string
-    return datetime.fromisoformat(input)
+    return _parse_date_str(input)
 
 
 def sign(profile:dict, enrollment:dict, issuer_enrollment:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:Config) -> x509.Certificate:
