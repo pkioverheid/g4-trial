@@ -146,16 +146,16 @@ class TestCert(unittest.TestCase):
 class TestParseDateStr(unittest.TestCase):
 
     def test_datetime_input(self):
-        value = datetime(2026, 8, 12, 10, 30, tzinfo=timezone.UTC)
+        value = datetime(2026, 8, 12, 10, 30, tzinfo=timezone.utc)
         result = _parse_date_str(value)
         self.assertIs(result, value)
 
     def test_now(self):
-        before = datetime.now(timezone.UTC)
+        before = datetime.now(timezone.utc)
 
         result = _parse_date_str("now")
 
-        after = datetime.now(timezone.UTC)
+        after = datetime.now(timezone.utc)
 
         self.assertIsInstance(result, datetime)
         self.assertGreaterEqual(result, before)
@@ -168,7 +168,7 @@ class TestParseDateStr(unittest.TestCase):
 
         self.assertEqual(
             result,
-            datetime(2026, 8, 12, 10, 30, tzinfo=timezone.UTC),
+            datetime(2026, 8, 12, 10, 30, tzinfo=timezone.utc),
         )
 
     def test_iso_datetime_string_without_timezone(self):
@@ -178,7 +178,7 @@ class TestParseDateStr(unittest.TestCase):
 
         self.assertEqual(
             result,
-            datetime(2026, 8, 12, 10, 30, tzinfo=timezone.UTC),
+            datetime(2026, 8, 12, 10, 30, tzinfo=timezone.utc),
         )
 
     def test_invalid_date_string(self):
@@ -189,13 +189,13 @@ class TestParseDateStr(unittest.TestCase):
 class TestParseNotAfter(unittest.TestCase):
 
     def setUp(self):
-        self.not_before = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.UTC)
+        self.not_before = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
         self.issuer_not_after = datetime(
-            2027, 1, 1, 12, 0, tzinfo=timezone.UTC
+            2027, 1, 1, 12, 0, tzinfo=timezone.utc
         )
 
     def test_datetime_input(self):
-        value = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.UTC)
+        value = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc)
 
         result = _parse_not_after(
             value,
@@ -253,7 +253,7 @@ class TestParseNotAfter(unittest.TestCase):
             self.issuer_not_after,
         )
 
-        expected = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.UTC)
+        expected = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc)
 
         self.assertEqual(result, expected)
 
