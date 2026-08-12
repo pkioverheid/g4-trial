@@ -2,11 +2,13 @@ import logging
 import os
 
 from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
 
 from lib import dates
+from lib.ra import validate
 
 from .config import Config
 from .events import Eventlog
@@ -14,7 +16,7 @@ from .keypair import KeyPair, get_hash_algo
 from .names import as_name
 from .qc_statements import build_qc_statements_extension
 from .san import build_san_extension
-from .util import force_int, keys_exist
+from .util import force_int, keys_exist, load_yaml
 
 logger = logging.getLogger(__name__)
 
@@ -193,3 +195,43 @@ class IssueService:
         self.event_log.log_issued_cert(issuer_keys, subject_keys)
 
         return cert
+
+    def process(self, profile: dict, enrollment: dict, subject_keys: KeyPair, issuer_password=None, subject_password=None) -> None:
+        validate(enrollment, profile)
+
+        # Find issuer keypair by its DN from its enrollment
+        issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
+        issuer_keys = KeyPair.for_filename(self.config.base_dir, os.path.splitext(profile['issuer'])[0])
+
+        selfsigned = issuer['subject'] == enrollment['subject']
+        if selfsigned:
+            logger.debug("Issuing a self signed certificate")
+            try:
+                issuer_keys.load()
+                print(f"KeyPair for {issuer_keys} already exists, skipping")
+                return
+            except FileNotFoundError:
+                # NOTE: use the subject password as it is used to encrypt the private key
+                issuer_keys.generate_private_key(profile, password=subject_password)
+                subject_keys = issuer_keys
+        else:
+            try:
+                issuer_keys.load(password=issuer_password)
+            except FileNotFoundError as e:
+                raise IssuerNotFoundError(
+                    f"Cannot find keys of {issuer_keys} for signing operation, please generate it first") from e
+
+            try:
+                subject_keys.load()
+            except FileNotFoundError:
+                logger.debug("Generating new key pair for subject")
+                subject_keys.generate_private_key(profile, password=subject_password)
+
+        cert = self.sign(profile, enrollment, issuer, subject_keys, issuer_keys)
+
+        # Write issued certificate to disk
+        filename = subject_keys.derfile
+        with open(filename, "wb") as f:
+            f.write(cert.public_bytes(serialization.Encoding.DER))
+
+        self.event_log.log_issued_cert(issuer_keys, subject_keys)
