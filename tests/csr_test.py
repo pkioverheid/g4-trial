@@ -4,7 +4,9 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from lib.csr import create_csr
+from lib.config import Config
+from lib.csr import RequestService
+from lib.events import Eventlog
 from lib.keypair import KeyPair
 
 
@@ -33,8 +35,11 @@ class TestCreateCsr(unittest.TestCase):
             },
         }
 
+        config = Config()
+        cls.service = RequestService(config, Eventlog(config))
+
     def test_creates_csr(self):
-        csr = create_csr(
+        csr = self.service.create(
             self.profile,
             self.enrollment,
             self.subject_keys,
@@ -58,7 +63,7 @@ class TestCreateCsr(unittest.TestCase):
         )
 
     def test_without_subject_alt_names(self):
-        csr = create_csr(
+        csr = self.service.create(
             self.profile,
             self.enrollment,
             self.subject_keys,
@@ -77,7 +82,7 @@ class TestCreateCsr(unittest.TestCase):
             ],
         }
 
-        csr = create_csr(
+        csr = self.service.create(
             self.profile,
             enrollment,
             self.subject_keys,
@@ -93,7 +98,7 @@ class TestCreateCsr(unittest.TestCase):
         )
 
     def test_algorithm(self):
-        csr = create_csr(
+        csr = self.service.create(
             {
                 "hashAlgorithm": "sha256",
                 "saltLength": 32,

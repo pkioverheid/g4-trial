@@ -1,10 +1,15 @@
 import argparse
 import logging
+import os
 import sys
 
-from lib import cert
+from cryptography.hazmat.primitives import serialization
+
+from lib import ra
+from lib.cert import IssuerNotFoundError, IssueService
 from lib.chain import write_full_chain
 from lib.config import Config
+from lib.events import Eventlog
 from lib.keypair import KeyPair
 from lib.util import load_yaml
 
@@ -23,6 +28,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config = Config.from_file("config.yaml")
+    event_log = Eventlog(config)
+    issue_service = IssueService(config, event_log)
 
     for filename in args.enrollments:
         logger.info(f"Processing {filename}")
@@ -34,7 +41,10 @@ if __name__ == "__main__":
 
         enrollment = load_yaml(filename)
         leaf_profile = load_yaml(args.profile_override or enrollment['profile'])
-        cert.process(leaf_profile, enrollment, subject_keys, config, issuer_password=args.issuer_password, subject_password=args.subject_password)
+
+        issue_service.process(leaf_profile, enrollment, subject_keys, issuer_password=args.issuer_password, subject_password=args.subject_password)
 
         if args.write_full_chain:
             write_full_chain(subject_keys, leaf_profile)
+
+        logger.info(f"Certificate issued and saved to {filename}")

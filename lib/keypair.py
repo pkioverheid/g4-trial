@@ -13,7 +13,6 @@ from cryptography.x509 import (
 )
 
 from lib.config import BASEDIR
-
 from lib.util import force_int
 
 

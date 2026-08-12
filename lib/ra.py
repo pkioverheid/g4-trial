@@ -7,12 +7,12 @@ from .util import output_errors
 logger = logging.getLogger(__name__)
 
 
-def validate(enrollment: dict, profile: dict):
+def validate(enrollment: dict, profile: dict) -> None:
     """
-    Validate CSR against the certificate profile
+    Validate CSR against the certificate profile. Raises exception
+    if validation fails. 
     :param enrollment:
     :param profile:
-    :return:
     """
     create_catalog("2020-12")
     schema = JSONSchema(profile['validations'])

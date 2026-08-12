@@ -2,8 +2,9 @@ import argparse
 import logging
 import sys
 
-from lib import crl
 from lib.config import Config
+from lib.crl import CRLService
+from lib.events import Eventlog
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("generate-crl")
@@ -17,10 +18,14 @@ def main():
     args = parser.parse_args()
 
     config = Config.from_file("config.yaml")
+    event_log = Eventlog(config)
+
+    service = CRLService(config, event_log)
 
     for filename in args.revocations:
         logger.info(f"Processing {filename}")
-        crl.process(filename, config, args.force, issuer_password=args.issuer_password)
+        service.process(filename, force=args.force, issuer_password=args.issuer_password)
+
 
 
 if __name__ == "__main__":

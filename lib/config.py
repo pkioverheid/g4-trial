@@ -10,7 +10,7 @@ from lib.util import output_errors
 BASEDIR = 'ca'
 
 # Ensure our output directories exist
-for dir in [BASEDIR, os.path.join(BASEDIR, 'private'), os.path.join(BASEDIR, 'certs'), os.path.join(BASEDIR, 'crls')]:
+for dir in [BASEDIR, os.path.join(BASEDIR, 'private'), os.path.join(BASEDIR, 'certs'), os.path.join(BASEDIR, 'crl')]:
     if not os.path.isdir(dir):
         os.mkdir(dir)
 
@@ -60,9 +60,9 @@ class Config:
         instance = JSON(data)
         result = schema.evaluate(instance)
         if not result.valid:
-            print(f"Invalid configuration: ")
+            print("Invalid configuration: ")
             output_errors(result.output("detailed")["errors"])
-            raise SyntaxError(f"Invalid configuration")
+            raise SyntaxError("Invalid configuration")
 
         return cls(
             log_filename=data["logFilename"],

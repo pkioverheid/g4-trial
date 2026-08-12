@@ -21,12 +21,18 @@ from cryptography.x509 import (
     UniformResourceIdentifier,
 )
 
-from lib.cert import sign
+from lib.cert import IssueService
 from lib.config import Config
+from lib.events import Eventlog
 from lib.keypair import KeyPair
 
 
 class TestCert(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.config = Config()
+        cls.service = IssueService(cls.config, Eventlog(cls.config))
 
     def test_sign(self):
 
@@ -41,7 +47,7 @@ class TestCert(unittest.TestCase):
         subject_keys = KeyPair.for_filename("test").generate_private_key(profile)
         issuer_keys = subject_keys
 
-        cert = sign(profile, enrollment, enrollment, subject_keys, issuer_keys, config)
+        cert = self.service.sign(profile, enrollment, enrollment, subject_keys, issuer_keys)
 
         self.assertEqual(cert.public_key(), subject_keys.public_key)
         self.assertEqual(

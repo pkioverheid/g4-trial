@@ -27,18 +27,15 @@ class Eventlog:
     def _log_issued_cert(self, issuer_enrollment: str, issuer_dn: str, aki: str, cert_serial_number: int, enrollment: str) -> None:
         self.log(f"issued;{issuer_enrollment};{issuer_dn};{aki};{cert_serial_number};{enrollment}")
 
-
     def log_issued_cert(self, issuer: KeyPair, subject: KeyPair) -> None:
         cert = subject.certificate
         aki = cert.extensions.get_extension_for_class(AuthorityKeyIdentifier).value.key_identifier.hex()
         self._log_issued_cert(issuer.basename, issuer.certificate.subject.rfc4514_string(), aki, cert.serial_number, subject.basename)
 
-
     def log_signed_crl(self, crl: x509.CertificateRevocationList) -> None:
         aki = crl.extensions.get_extension_for_class(AuthorityKeyIdentifier).value.key_identifier.hex()
         crl_number = crl.extensions.get_extension_for_class(x509.CRLNumber).value.crl_number
         self.log(f"crl;{aki};{crl_number}")
-
 
     def lookup(self, issuer_dn: str, serial_number: int) -> str:
         """

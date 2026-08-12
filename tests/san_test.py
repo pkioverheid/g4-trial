@@ -39,7 +39,7 @@ class TestSANFunctions(unittest.TestCase):
         ]
 
         # Build the SAN extension
-        actual = build_san_extension(inputdata, config={})
+        actual = build_san_extension(inputdata)
         expected = [
                 RFC822Name("dik.trom@companyname.com"),
                 DNSName('companyname.com'),
@@ -91,7 +91,7 @@ class TestSANFunctions(unittest.TestCase):
         ]
 
         with self.assertRaises(NotImplementedError):
-            build_san_extension(subjectAltNames, config={})
+            build_san_extension(subjectAltNames)
 
     def test_unrecognized_oid(self):
         """Test unrecognized OID containing a 'value' should still be parsed"""
@@ -108,7 +108,7 @@ class TestSANFunctions(unittest.TestCase):
             }
         ]
 
-        actual = build_san_extension(subjectAltNames, config={})
+        actual = build_san_extension(subjectAltNames)
         expected = [
             OtherName(type_id=ObjectIdentifier("0.1.2.3.4.1"), value=b'\x0c\x04test'),
             OtherName(type_id=ObjectIdentifier("0.1.2.3.4.2"), value=b'\x16\x04test'),

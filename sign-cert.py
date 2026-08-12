@@ -8,28 +8,25 @@ import yaml
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import (
-    ExtensionNotFound,
-    SubjectAlternativeName,
     load_pem_x509_csr,
 )
 from jschon import JSON, JSONSchema, create_catalog
 
-from lib.cert import sign
+from lib import ra
+from lib.cert import IssueService
 from lib.chain import write_full_chain
 from lib.config import Config
-from lib.csr import verify
+from lib.csr import RequestService
 from lib.events import Eventlog
 from lib.keypair import KeyPair
-from lib.names import as_dict, generate_basename
-from lib.ra import validate
-from lib.san import read_generalnames
+from lib.names import generate_basename
 from lib.util import load_yaml
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("sign-cert")
 
 
-def find_profile(enrollment: dict) -> str:
+def _find_profile_for(enrollment: dict) -> str:
     """
     Find a match profile for indicted enrollment
     :param enrollment:
@@ -69,6 +66,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config = Config.from_file("config.yaml")
+    event_log = Eventlog(config)
+
+    request_service = RequestService(config, event_log)
+    issue_service = IssueService(config, event_log)
 
     for csrfile in args.csrs:
 
@@ -79,7 +80,7 @@ if __name__ == "__main__":
 
         # Verify the CSR cryptografically
         try:
-            verify(csr)
+            request_service.verify(csr)
         except InvalidSignature:
             logger.fatal(f"{csrfile} signature is invalid, exiting ❌")
             sys.exit(1)
@@ -89,22 +90,9 @@ if __name__ == "__main__":
 
         if not args.enrollment:
             # No enrollment file was provided, rebuild from CSR data to allow verification one set of code
-            enrollment = {
-                'profile': 'tbd',
-                'subject': as_dict(csr.subject)
-            }
-
-            # If present, rebuild SANs
-            try:
-                ext = csr.extensions.get_extension_for_class(SubjectAlternativeName)
-                enrollment['subjectAltNames'] = read_generalnames(ext.value.public_bytes())
-                logger.debug(f"CSR contained {len(enrollment['subjectAltNames'])} SANs.")
-            except ExtensionNotFound:
-                pass
-
-            # Use or find a matching certificate profile
-            enrollment['profile'] = args.profile or find_profile(enrollment)
-
+            enrollment = request_service.rebuild_enrollment(csr)
+            enrollment['profile'] = args.profile or _find_profile_for(enrollment)
+            
             if args.write_enrollment:
                 # Only write the enrollment file. Don't validate data against the certificate profile as this option
                 # may be used to correct an incorrect CSR
@@ -118,17 +106,22 @@ if __name__ == "__main__":
                 logger.info(f"Wrote enrollment to {args.write_enrollment}")
 
                 continue
+
+        # Validate CSR against the profile (which requires the enrollment)
         else:
-            # Use provided enrollment file
             enrollment = load_yaml(args.enrollment)
 
-        # Validate enrollment
-        subject_profile = load_yaml(enrollment['profile'])
-        validate(enrollment, subject_profile)
 
-        # load subject public key
-        subject_keys = KeyPair.for_filename(csrfile)
-        subject_keys.load_from_csr(csr)
+        # Load the associated profile and validate
+        subject_profile = load_yaml(enrollment['profile'])
+        ra.validate(enrollment, subject_profile)
+
+        # Load subject public key from CSR
+        subject_keys = (
+            KeyPair
+            .for_filename(csrfile)
+            .load_from_csr(csr)
+        )
 
         # Load issuer's keys
         issuer_profile = load_yaml(os.path.join('enrollment', subject_profile['issuer']))
@@ -139,16 +132,17 @@ if __name__ == "__main__":
             logger.fatal(f"Cannot find keys of {issuer_keys} for signing operation, please generate it first")
             sys.exit(1)
 
-        cert = sign(subject_profile, enrollment, issuer_profile, subject_keys, issuer_keys, config)
+        # Issue the certificate
+        cert = issue_service.sign(subject_profile, enrollment, issuer_profile, subject_keys, issuer_keys)
 
         # Write issued certificate to disk
         filename = subject_keys.derfile
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
 
-        Eventlog(config).log_issued_cert(issuer_keys, subject_keys)
-
-        logger.info(f"Certificate issued and saved to {filename}")
+        event_log.log_issued_cert(issuer_keys, subject_keys)
 
         if args.write_full_chain:
             write_full_chain(subject_keys, subject_profile)
+
+        logger.info(f"Certificate issued and saved to {filename}")
