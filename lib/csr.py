@@ -48,24 +48,13 @@ def create_csr(profile: dict, enrollment: dict, subject_keys: KeyPair, password=
                         ))
 
 
-def verify(csr: CertificateSigningRequest) -> bool:
-    pub = csr.public_key()
-    sig = csr.signature
-    data = csr.tbs_certrequest_bytes
-    alg = csr.signature_hash_algorithm
-
-    try:
-        if isinstance(pub, rsa.RSAPublicKey):
-            pub.verify(sig, data, csr.signature_algorithm_parameters, alg)
-        elif isinstance(pub, ec.EllipticCurvePublicKey):
-            pub.verify(sig, data, ec.ECDSA(alg))
-        elif isinstance(pub, (ed25519.Ed25519PublicKey, ed448.Ed448PublicKey)):
-            pub.verify(sig, data)
-        else:
-            raise UnsupportedAlgorithm(f"Unsupported signature algorithm {type(pub)}")
-        return True
-    except InvalidSignature:
-        return False
+def verify(csr: CertificateSigningRequest) -> None:
+    """
+    Verifies whether the CSR is acceptable to us. Raises an
+    exception if it fails. 
+    """
+    if not csr.is_signature_valid:
+        raise InvalidSignature()
 
 
 def process(profile: dict, enrollment: dict, keypair: KeyPair, subject_password=None) -> None:
