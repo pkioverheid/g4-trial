@@ -135,7 +135,7 @@ def process(revocationfile, config, force=False, issuer_password=None):
     with open(filename, "wb") as f:
         f.write(crl.public_bytes(serialization.Encoding.DER))
 
-    log = Eventlog(Config.from_yaml("config.yaml"))
+    log = Eventlog(Config.from_file("config.yaml"))
     log.log_signed_crl(crl)
 
     logger.info(f"Signed CRL with number {current_crl_number+1} containing {len(profile['revocations'])} revocations and saved to {filename}")

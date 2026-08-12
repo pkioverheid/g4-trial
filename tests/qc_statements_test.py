@@ -1,6 +1,6 @@
 import unittest
 
-from lib.config import Config
+from lib.config import Config, PDSLocation
 from lib.qc_statements import (
     PdsLocations,
     QCStatements,
@@ -16,10 +16,7 @@ class TestBuildQcStatementsExtension(unittest.TestCase):
             ca_issuers_base_url="https://ca.example.com",
             crl_distribution_points_base_url="https://crl.example.com",
             crl_renewal_hours=48,
-            pds_location={
-                "url": "https://example.com/pds",
-                "language": "en",
-            },
+            pds_location=PDSLocation("https://example.com/pds", "en"),
         )
 
     def test_encode(self):
@@ -59,15 +56,20 @@ class TestBuildQcStatementsExtension(unittest.TestCase):
 
         self.assertEqual(len(result), 4)
 
-        self.assertEqual(result[0]['statementId'].native, "0.4.0.1862.1.1")
-        self.assertEqual(result[0]['statementInfo'].parse(QcTypeSyntax)[0].native, "0.4.0.1862.1.6")
+        self.assertEqual(result[0]["statementId"].native, "0.4.0.1862.1.1")
+        self.assertEqual(
+            result[0]["statementInfo"].parse(QcTypeSyntax)[0].native, "0.4.0.1862.1.6"
+        )
 
-        self.assertEqual(result[1]['statementId'].native, "0.4.0.1862.1.5")
-        self.assertEqual(result[1]['statementInfo'].parse(PdsLocations)[0]['url'].native, "https://example.com/pds")
-        self.assertEqual(result[1]['statementInfo'].parse(PdsLocations)[0]['language'].native, "en")
+        self.assertEqual(result[1]["statementId"].native, "0.4.0.1862.1.5")
+        location = result[1]["statementInfo"].parse(PdsLocations)[0]
+        self.assertEqual(location["url"].native, "https://example.com/pds")
+        self.assertEqual(location["language"].native, "en")
 
-        self.assertEqual(result[2]['statementId'].native, "1.3.6.1.5.5.7.11.2")
-        self.assertEqual(result[2]['statementInfo'].parse(QcTypeSyntax)[0].native, "0.4.0.1862.1.3")
+        self.assertEqual(result[2]["statementId"].native, "1.3.6.1.5.5.7.11.2")
+        self.assertEqual(
+            result[2]["statementInfo"].parse(QcTypeSyntax)[0].native, "0.4.0.1862.1.3"
+        )
 
-        self.assertEqual(result[3]['statementId'].native, "1.2.3.4")
-        self.assertEqual(result[3]['statementInfo'].native, None)
+        self.assertEqual(result[3]["statementId"].native, "1.2.3.4")
+        self.assertEqual(result[3]["statementInfo"].native, None)

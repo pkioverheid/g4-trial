@@ -250,7 +250,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
     with open(filename, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.DER))
 
-    log = Eventlog(Config.from_yaml("config.yaml"))
+    log = Eventlog(Config.from_file("config.yaml"))
     log.log_issued_cert(issuer_keys, subject_keys)
 
     logger.info(f"Certificate issued and saved to {filename}")
