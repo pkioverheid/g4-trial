@@ -8,7 +8,7 @@ jobs:
 
   unittests:
     name: Unit tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -255,7 +255,7 @@ jobs:
 
   examples:
     name: Examples
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs:
       - unittests
     steps:
@@ -276,6 +276,8 @@ jobs:
           echo 3 | python create-ca.py
           echo 4 | python create-ca.py
           echo 5 | python create-ca.py
+          echo 6 | python create-ca.py
+          echo 7 | python create-ca.py
 
       - name: Issue examples
         run: find examples/enrollment -name "*.yaml" -exec bash -c 'for n; do python generate-cert.py "${n}" || exit 1; done ' sh {} +
@@ -382,3 +384,85 @@ jobs:
           # Verify
           openssl verify -CAfile "ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.pem" -untrusted intermediates.pem leaf.pem
 
+  verify-algorithms:
+    name: Verify algorithm usage
+    runs-on: ubuntu-26.04
+    needs:
+      - unittests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install packages
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: RSA-4096 with RSASSA-PSS
+        run: |
+          python generate-cert.py enrollment/TRIALPKIoverheidG4RootPrivGTLS2024.yaml
+          openssl x509 -in ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer -noout -text | grep 'Signature Algorithm' | grep 'rsassaPss'
+          openssl x509 -in ca/certs/TRIALPKIoverheidG4RootPrivGTLS2024.cer -noout -text | grep 'Public Key Algorithm' | grep 'rsaEncryption'
+
+      - name: ML-DSA-87 with ML-DSA-87
+        run: |
+          python generate-cert.py enrollment/TRIALPKIoverheidG4RootPrivGTLS2026.yaml
+          openssl x509 -in ca/certs/TRIALPKIoverheidG4RootPrivGTLS2026.cer -noout -text | grep 'Signature Algorithm' | grep 'ML-DSA-87'
+          openssl x509 -in ca/certs/TRIALPKIoverheidG4RootPrivGTLS2026.cer -noout -text | grep 'Public Key Algorithm' | grep 'ML-DSA-87'
+
+      - name: ML-KEM-1024 with ML-DSA-87
+        run: |
+          python generate-cert.py "enrollment/TRIALPKIoverheidG4RootPrivGOther2026.yaml" "enrollment/TRIALPKIoverheidG4IntmPrivGOtherLP2026.yaml" "enrollment/TRIALMyTSPG4PKIoPrivGOtherLP2026.yaml" "examples/enrollment/G4-PQC-Private-G-Other-LP-Confidentiality-with-OIN.yaml"
+
+          openssl x509 -in ca/certs/G4-PQC-Private-G-Other-LP-Confidentiality-with-OIN.cer -noout -text | grep 'Signature Algorithm' | grep 'ML-DSA-87'
+          openssl x509 -in ca/certs/G4-PQC-Private-G-Other-LP-Confidentiality-with-OIN.cer -noout -text | grep 'Public Key Algorithm' | grep 'ML-KEM-1024'
+
+  verify-mixed-csr:
+    name: Verify mixed CSRs containing ML-KEM and signed by ML-DSA
+    runs-on: ubuntu-26.04
+    needs:
+      - unittests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install packages
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: ML-KEM CSR signed with itself fails
+        run: |
+          dsakem=G4-PQC-Private-G-Other-LP-Confidentiality
+          ! (python create-csr.py --signer examples/enrollment/G4-PQC-Private-G-TLS-SYS.yaml examples/enrollment/$dsakem.yaml)
+
+      - name: ML-KEM CSR signed with ML-DSA
+        run: |
+          # Create PQC TLS & Other hierarchies
+          echo 6 | python create-ca.py
+          echo 7 | python create-ca.py
+
+          # Create a ML-DSA/ML-DSA CSR first
+          signer=G4-PQC-Private-G-TLS-SYS
+          python create-csr.py examples/enrollment/$signer.yaml
+
+          # Sign it
+          python sign-cert.py --profile 'profiles/G4TRIALPQCEEPrivGTLSSYS2026.yaml' $signer.csr 
+          openssl x509 -in ca/certs/$signer.cer -noout -text | grep 'Signature Algorithm' | grep 'ML-DSA-87'
+          openssl x509 -in ca/certs/$signer.cer -noout -text | grep 'Public Key Algorithm' | grep 'ML-DSA-87'
+
+          # Create the CSR for ML-KEM
+          dsakem=G4-PQC-Private-G-Other-LP-Confidentiality
+          python create-csr.py --signer examples/enrollment/G4-PQC-Private-G-TLS-SYS.yaml examples/enrollment/$dsakem.yaml
+          openssl req -in $dsakem.csr -noout -text | grep 'Signature Algorithm' | grep 'ML-DSA-87'
+          openssl req -in $dsakem.csr -noout -text | grep 'Public Key Algorithm' | grep 'ML-KEM-1024'
+
+          # Sign the ML-KEM CSR
+          python sign-cert.py --profile 'profiles/G4TRIALPQCEEPrivGOtherLPConfidentiality2026.yaml' $dsakem.csr 
+          openssl x509 -in ca/certs/$dsakem.cer -noout -text | grep 'Signature Algorithm' | grep 'ML-DSA-87'
+          openssl x509 -in ca/certs/$dsakem.cer -noout -text | grep 'Public Key Algorithm' | grep 'ML-KEM-1024'
+     

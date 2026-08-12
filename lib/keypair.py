@@ -5,7 +5,7 @@ from enum import StrEnum
 
 from cryptography.exceptions import UnsupportedAlgorithm
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import mldsa, mlkem, rsa
 from cryptography.x509 import (
     CertificateSigningRequest,
     load_der_x509_certificate,
@@ -18,6 +18,13 @@ from lib.util import force_int
 
 class Crypto(StrEnum):
     RSA = "rsaEncryption"
+
+    MLDSA44 = "ML-DSA-44"
+    MLDSA65 = "ML-DSA-65"
+    MLDSA87 = "ML-DSA-87"
+
+    MLKEM768 = "ML-KEM-768"
+    MLKEM1024 = "ML-KEM-1024"
 
 
 logger = logging.getLogger(__name__)
@@ -100,6 +107,16 @@ class KeyPair:
                     public_exponent=force_int(profile['exponent']),
                     key_size=force_int(profile['publicKeyLength'])
                 )
+            case Crypto.MLDSA44:
+                self.private_key = mldsa.MLDSA44PrivateKey.generate()
+            case Crypto.MLDSA65:
+                self.private_key = mldsa.MLDSA65PrivateKey.generate()
+            case Crypto.MLDSA87:
+                self.private_key = mldsa.MLDSA87PrivateKey.generate()
+            case Crypto.MLKEM768:
+                self.private_key = mlkem.MLKEM768PrivateKey.generate()
+            case Crypto.MLKEM1024:
+                self.private_key = mlkem.MLKEM1024PrivateKey.generate()
             case _:
                 raise UnsupportedAlgorithm(f"Unsupported publicKeyAlgorithm {publicKeyAlgorithm}")
 

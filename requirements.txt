@@ -1,4 +1,6 @@
 pyyaml
-cryptography>=42.0.0
+#cryptography>=50.0.0
+git+https://github.com/ronaldvanrij/cryptography.git@mlkem-csr
 jschon
 asn1crypto
+aenum

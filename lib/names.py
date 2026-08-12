@@ -5,6 +5,7 @@ from asn1crypto.x509 import NameType
 from cryptography.x509 import Name
 from cryptography.x509.oid import NameOID
 
+from asn1crypto.x509 import NameType
 
 class OID:
     def __init__(self, short_name, long_name, oid):
