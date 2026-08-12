@@ -2,6 +2,7 @@ import logging
 import os
 import re
 from datetime import UTC, datetime, timedelta
+from typing import Union
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
@@ -133,6 +134,39 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys, config):
     return builder
 
 
+def _parse_date_str(input: Union[str | datetime]) -> datetime:
+    if isinstance(input, datetime):
+        # Absolute date in the correct type
+        return input
+    elif input == 'now':
+        return datetime.now(UTC)
+
+    # assume date time format as string: parse
+    return datetime.fromisoformat(input)
+
+
+def _parse_not_after(input: Union[str | datetime], not_before: datetime, issuer_not_valid_after: Union[datetime | None]) -> datetime:
+    if isinstance(input, datetime):
+        # Absolute date
+        return input
+    
+    match = re.match("^issuer([0-9-+]+)d$", input)
+    if match:
+        if not issuer_not_valid_after:
+            raise ValueError(f'Certificate notAfter date depends on issuer, but has not been defined')
+        
+        # Is a period relative to the issuer's notAfter. NOTE: last second is inclusive, therefore substract one second
+        return issuer_not_valid_after + timedelta(days=int(match.group(1)), seconds=-1)
+    
+    match = re.match("^([0-9]+)d$", input)
+    if match:
+        # Relative date into the future
+        return not_before + timedelta(days=int(match.group(1)), seconds=-1)
+    
+    # Assume date time formated as string
+    return datetime.fromisoformat(input)
+
+
 def sign(profile:dict, enrollment:dict, issuer_enrollment:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:Config) -> x509.Certificate:
 
     issuer_name = issuer_keys.certificate.subject if issuer_keys.certificate is not None else as_name(issuer_enrollment['subject'])
@@ -148,30 +182,8 @@ def sign(profile:dict, enrollment:dict, issuer_enrollment:dict, subject_keys:Key
         profile['extensions']['cRLDistributionPoints']['value'] = [value % replacements for value in profile['extensions']['cRLDistributionPoints']['value']]
 
     # Validity
-    if isinstance(profile['validity']['notBefore'], datetime):
-        # Absolute date
-        not_before = profile['validity']['notBefore']
-    elif profile['validity']['notBefore'] == 'now':
-        not_before = datetime.now(UTC)
-    else:  # assume date time format as string
-        not_before = datetime.fromisoformat(profile['validity']['notBefore'])
-
-    if isinstance(profile['validity']['notAfter'], datetime):
-        # Absolute date
-        not_after = profile['validity']['notAfter']
-    else:
-        match = re.match("^issuer([0-9-+]+)d$", profile['validity']['notAfter'])
-        if match:
-            # Is a period relative to the issuer's notAfter. NOTE: last second is inclusive, therefore substract one second
-            not_after = issuer_keys.certificate.not_valid_after_utc + timedelta(days=int(match.group(1)), seconds=-1)
-        else:
-            match = re.match("^([0-9]+)d$", profile['validity']['notAfter'])
-            if match:
-                # Relative date into the future
-                not_after = not_before + timedelta(days=int(match.group(1)), seconds=-1)
-            else:
-                # assume date time format as string
-                not_after = datetime.fromisoformat(profile['validity']['notAfter'])
+    not_before = _parse_date_str(profile['validity']['notBefore'])
+    not_after = _parse_not_after(profile['validity']['notAfter'], not_before, issuer_keys.certificate.not_valid_after_utc if issuer_keys.certificate_exists() else None)
 
     # Generate a random Serial number (20 octets)
     serial_number = int.from_bytes(os.urandom(20), "big") >> 1

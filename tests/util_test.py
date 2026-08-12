@@ -70,7 +70,3 @@ class TestKeysExist(unittest.TestCase):
         }
 
         self.assertFalse(keys_exist(data, ["a", "b", "missing"]))
-
-
-if __name__ == "__main__":
-    unittest.main()

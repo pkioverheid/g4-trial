@@ -240,7 +240,3 @@ class TestGenerateCrl(unittest.TestCase):
             padding=self.certificate.signature_algorithm_parameters,
             algorithm=self.certificate.signature_hash_algorithm,
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

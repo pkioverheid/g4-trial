@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime, timedelta, timezone
 
 import yaml
 from cryptography.x509 import (
@@ -21,7 +22,7 @@ from cryptography.x509 import (
     UniformResourceIdentifier,
 )
 
-from lib.cert import sign
+from lib.cert import _parse_date_str, _parse_not_after, sign
 from lib.config import Config
 from lib.keypair import KeyPair
 
@@ -140,3 +141,134 @@ class TestCert(unittest.TestCase):
                 general_names=GeneralNames([DNSName("example.com")])
             ),
         )
+
+
+class TestParseDateStr(unittest.TestCase):
+
+    def test_datetime_input(self):
+        value = datetime(2026, 8, 12, 10, 30, tzinfo=timezone.UTC)
+        result = _parse_date_str(value)
+        self.assertIs(result, value)
+
+    def test_now(self):
+        before = datetime.now(timezone.UTC)
+
+        result = _parse_date_str("now")
+
+        after = datetime.now(timezone.UTC)
+
+        self.assertIsInstance(result, datetime)
+        self.assertGreaterEqual(result, before)
+        self.assertLessEqual(result, after)
+
+    def test_iso_datetime_string(self):
+        value = "2026-08-12T10:30:00+00:00"
+
+        result = _parse_date_str(value)
+
+        self.assertEqual(
+            result,
+            datetime(2026, 8, 12, 10, 30, tzinfo=timezone.UTC),
+        )
+
+    def test_iso_datetime_string_without_timezone(self):
+        value = "2026-08-12T10:30:00"
+
+        result = _parse_date_str(value)
+
+        self.assertEqual(
+            result,
+            datetime(2026, 8, 12, 10, 30, tzinfo=timezone.UTC),
+        )
+
+    def test_invalid_date_string(self):
+        with self.assertRaises(ValueError):
+            _parse_date_str("not-a-date")
+
+
+class TestParseNotAfter(unittest.TestCase):
+
+    def setUp(self):
+        self.not_before = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.UTC)
+        self.issuer_not_after = datetime(
+            2027, 1, 1, 12, 0, tzinfo=timezone.UTC
+        )
+
+    def test_datetime_input(self):
+        value = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.UTC)
+
+        result = _parse_not_after(
+            value,
+            self.not_before,
+            self.issuer_not_after,
+        )
+
+        self.assertIs(result, value)
+
+    def test_issuer_relative_days(self):
+        result = _parse_not_after(
+            "issuer10d",
+            self.not_before,
+            self.issuer_not_after,
+        )
+
+        expected = (
+            self.issuer_not_after
+            + timedelta(days=10, seconds=-1)
+        )
+
+        self.assertEqual(result, expected)
+
+    def test_issuer_relative_negative_days(self):
+        result = _parse_not_after(
+            "issuer-10d",
+            self.not_before,
+            self.issuer_not_after,
+        )
+
+        expected = (
+            self.issuer_not_after
+            + timedelta(days=-10, seconds=-1)
+        )
+
+        self.assertEqual(result, expected)
+
+    def test_relative_zero_days(self):
+        result = _parse_not_after(
+            "0d",
+            self.not_before,
+            self.issuer_not_after,
+        )
+
+        expected = self.not_before - timedelta(seconds=1)
+
+        self.assertEqual(result, expected)
+
+    def test_iso_datetime_string(self):
+        value = "2026-06-01T12:00:00+00:00"
+
+        result = _parse_not_after(
+            value,
+            self.not_before,
+            self.issuer_not_after,
+        )
+
+        expected = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.UTC)
+
+        self.assertEqual(result, expected)
+
+    def test_invalid_dependency(self):
+        with self.assertRaises(ValueError):
+            _parse_not_after(
+                "issuer-1d",
+                self.not_before,
+                None,
+            )
+
+    def test_invalid_string(self):
+        with self.assertRaises(ValueError):
+            _parse_not_after(
+                "not-a-date",
+                self.not_before,
+                self.issuer_not_after,
+            )

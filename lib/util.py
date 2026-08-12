@@ -49,6 +49,9 @@ def output_errors(errors):
 
 
 def choose(prompt, options):
+    """
+    Print provided list and let the use choose an option. 
+    """
     print(prompt)
     for i, option in enumerate(options, 1):
         if isinstance(option, dict):
