@@ -4,6 +4,7 @@ import sys
 
 from lib import cert
 from lib.chain import write_full_chain
+from lib.config import Config
 from lib.keypair import KeyPair
 from lib.util import load_yaml
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     parser.add_argument('enrollments', nargs='+', help="Enrollments to process")
     args = parser.parse_args()
 
-    config = load_yaml("config.yaml")
+    config = Config.from_file("config.yaml")
 
     for filename in args.enrollments:
         logger.info(f"Processing {filename}")

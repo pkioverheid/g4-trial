@@ -46,7 +46,7 @@ class Config:
     def from_file(cls, filename: str) -> "Config":
         try:
             with Path(filename).open("r", encoding="utf-8") as f:
-                return cls.from_yaml(f.read(0))
+                return cls.from_yaml(f.read())
         except SyntaxError as e:
             raise SyntaxError(f"Configuration file {filename} is invalid") from e
 

@@ -16,8 +16,6 @@ if __name__ == "__main__":
     parser.add_argument('enrollments', nargs='+', help="Enrollment to create key pairs and Certificate Signing Request for")
     args = parser.parse_args()
 
-    config = load_yaml("config.yaml")
-
     for filename in args.enrollments:
         logger.info(f"Processing {filename}")
 
@@ -27,5 +25,6 @@ if __name__ == "__main__":
             continue
 
         enrollment = load_yaml(filename)
+        profile = load_yaml(enrollment['profile'])
 
-        csr.process(load_yaml(enrollment['profile']), enrollment, subject_keys, config, subject_password=args.subject_password)
+        csr.process(profile, enrollment, subject_keys, subject_password=args.subject_password)

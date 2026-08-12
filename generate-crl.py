@@ -3,7 +3,7 @@ import logging
 import sys
 
 from lib import crl
-from lib.util import load_yaml
+from lib.config import Config
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger("generate-crl")
@@ -16,7 +16,7 @@ def main():
     parser.add_argument('revocations', nargs='+', help="Generate CRLs for these files")
     args = parser.parse_args()
 
-    config = load_yaml("config.yaml")
+    config = Config.from_file("config.yaml")
 
     for filename in args.revocations:
         logger.info(f"Processing {filename}")

@@ -212,7 +212,7 @@ def sign(profile:dict, enrollment:dict, issuer_enrollment:dict, subject_keys:Key
     return cert
 
 
-def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict, issuer_password=None, subject_password=None):
+def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: Config, issuer_password=None, subject_password=None) -> None:
     validate(enrollment, profile)
 
     # Find issuer keypair by its DN from its enrollment
