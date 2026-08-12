@@ -141,13 +141,10 @@ class CRLService:
 
         self.event_log.log_signed_crl(crl)
 
-        number = crl.extensions.get_extension_for_class(CRLNumber).value.crl_number
-        count = len(crl)
-
         # Write to disk
         with open(filename, "wb") as f:
             f.write(crl.public_bytes(serialization.Encoding.DER))
 
-        logger.info(f"Signed CRL with number {number} containing {count} revocations and saved to {filename}")
+        logger.info(f"Signed CRL with number {current_crl_number+1} containing {len(revocations['revocations'])} revocations and saved to {filename}")
 
         return crl
