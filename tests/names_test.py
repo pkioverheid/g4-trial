@@ -36,7 +36,3 @@ class TestDNFunctions(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             as_name(dn_input)
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -42,21 +42,27 @@ class Config:
     crl_renewal_hours: int = 48
     pds_location: PDSLocation = PDSLocation('https://www.github.com/pkioverheid/g4-trial', 'en')
 
-   
     @classmethod
-    def from_yaml(cls, filename: str) -> "Config":
-        with Path(filename).open("r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+    def from_file(cls, filename: str) -> "Config":
+        try:
+            with Path(filename).open("r", encoding="utf-8") as f:
+                return cls.from_yaml(f.read())
+        except SyntaxError as e:
+            raise SyntaxError(f"Configuration file {filename} is invalid") from e
 
-            create_catalog("2020-12")
-            schema = JSONSchema.loadf(os.path.join('schema', 'config.json'))
+    @classmethod
+    def from_yaml(cls, yaml_str: str) -> "Config":
+        data = yaml.safe_load(yaml_str)
 
-            instance = JSON(data)
-            result = schema.evaluate(instance)
-            if not result.valid:
-                print(f"Configuration file {filename} is invalid: ")
-                output_errors(result.output("detailed")["errors"])
-                raise SyntaxError(f"Configuration file {filename} is invalid")
+        create_catalog("2020-12")
+        schema = JSONSchema.loadf(os.path.join('schema', 'config.json'))
+
+        instance = JSON(data)
+        result = schema.evaluate(instance)
+        if not result.valid:
+            print(f"Invalid configuration: ")
+            output_errors(result.output("detailed")["errors"])
+            raise SyntaxError(f"Invalid configuration")
 
         return cls(
             log_filename=data["logFilename"],

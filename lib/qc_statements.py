@@ -7,6 +7,8 @@ from asn1crypto.core import (
     SequenceOf,
 )
 
+from lib.config import Config
+
 
 class SemanticsInformation(Sequence):
     _fields = [('semanticsIdentifier', ObjectIdentifier)] # noqa: RUF012
@@ -38,7 +40,7 @@ class PdsLocations(SequenceOf):
     _child_spec = PdsLocation
 
 
-def build_qc_statements_extension(qc_data, config):
+def build_qc_statements_extension(qc_data, config: Config) -> bytes:
     """
     Encodes QCStatements with a statementId and statementInfo (OID).
     """
@@ -55,10 +57,10 @@ def build_qc_statements_extension(qc_data, config):
                     'statementInfo': QcTypeSyntax([ObjectIdentifier(item['value'].split(' ')[0])])
                 }))
             case 'id-etsi-qcs-QcPDS':
-                loc = config.get('pdsLocation')
+                loc = config.pds_location
 
-                url = item['value']['url'].format(loc.get('url'))
-                language = item['value']['language'].format(loc.get('language'))
+                url = item['value']['url'].format(loc.url)
+                language = item['value']['language'].format(loc.language)
 
                 pds_loc = PdsLocations([
                     PdsLocation({'url': url, 'language': language})

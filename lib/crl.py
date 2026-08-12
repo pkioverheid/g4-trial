@@ -81,7 +81,7 @@ catalog = create_catalog("2020-12")
 schema = JSONSchema.loadf(os.path.join('schema', 'revocations.json'))
 
 
-def process(revocationfile, config, force=False, issuer_password=None):
+def process(revocationfile: str, config:Config, force:bool=False, issuer_password:str=None) -> None:
 
     # Find keys
     ca_keys = KeyPair.for_filename(revocationfile).load(password=issuer_password)
@@ -126,16 +126,16 @@ def process(revocationfile, config, force=False, issuer_password=None):
             current_crl_number = crl.extensions.get_extension_for_class(x509.CRLNumber).value.crl_number
             logger.debug(f"Current cRLNumber is {current_crl_number}")
     except FileNotFoundError:
+        # Safely ignore, as this would be the first CRL for this CA
         pass
 
     # Generate CRL
-    crl = generate_crl(profile['revocations'], ca_keys, crl_number=current_crl_number+1, renewal_hours=config.get('crlRenewalHours', 48))
+    crl = generate_crl(profile['revocations'], ca_keys, crl_number=current_crl_number+1, renewal_hours=config.crl_renewal_hours)
 
     # Write to disk
     with open(filename, "wb") as f:
         f.write(crl.public_bytes(serialization.Encoding.DER))
 
-    log = Eventlog(Config.from_yaml("config.yaml"))
-    log.log_signed_crl(crl)
+    Eventlog(config).log_signed_crl(crl)
 
     logger.info(f"Signed CRL with number {current_crl_number+1} containing {len(profile['revocations'])} revocations and saved to {filename}")

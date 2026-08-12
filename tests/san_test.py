@@ -114,7 +114,3 @@ class TestSANFunctions(unittest.TestCase):
             OtherName(type_id=ObjectIdentifier("0.1.2.3.4.2"), value=b'\x16\x04test'),
             ]
         self.assertEqual(actual, expected)
-
-
-if __name__ == '__main__':
-    unittest.main()

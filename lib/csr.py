@@ -68,7 +68,7 @@ def verify(csr: CertificateSigningRequest) -> bool:
         return False
 
 
-def process(profile: dict, enrollment: dict, keypair: KeyPair, config: dict, subject_password=None):
+def process(profile: dict, enrollment: dict, keypair: KeyPair, subject_password=None) -> None:
     validate(enrollment, profile)
 
     csr = create_csr(profile, enrollment, keypair, password=subject_password)

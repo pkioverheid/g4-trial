@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    config = load_yaml("config.yaml")
+    config = Config.from_file("config.yaml")
 
     for csrfile in args.csrs:
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
         # Load issuer's keys
         issuer_profile = load_yaml(os.path.join('enrollment', subject_profile['issuer']))
-        issuer_keys = KeyPair(generate_basename(issuer_profile['subject']))
+        issuer_keys = KeyPair.for_filename(generate_basename(issuer_profile['subject']))
         try:
             issuer_keys.load(password=args.issuer_password)
         except FileNotFoundError:
@@ -145,8 +145,7 @@ if __name__ == "__main__":
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
 
-        log = Eventlog(Config.from_yaml("config.yaml"))
-        log.log_issued_cert(issuer_keys, subject_keys)
+        Eventlog(config).log_issued_cert(issuer_keys, subject_keys)
 
         logger.info(f"Certificate issued and saved to {filename}")
 

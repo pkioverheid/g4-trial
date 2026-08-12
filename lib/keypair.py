@@ -12,8 +12,9 @@ from cryptography.x509 import (
     load_pem_x509_certificate,
 )
 
-from .config import BASEDIR
-from .util import force_int
+from lib.config import BASEDIR
+
+from lib.util import force_int
 
 
 class Crypto(StrEnum):
@@ -37,16 +38,17 @@ class KeyPair:
     derfile = property(lambda self: os.path.join(self.basedir, 'certs', f'{self.basename}.cer'))
     pemfile = property(lambda self: os.path.join(self.basedir, 'certs', f'{self.basename}.pem'))
 
-    def __init__(self, basename, basedir=BASEDIR):
-        self.basename = basename
-        self.basedir = basedir
-        self.certificate = None
-        self.private_key = None
-        self.public_key = None
+    def __init__(self, private_key, public_key, certificate):
+        self.basedir = BASEDIR
+        self.private_key = private_key
+        self.public_key = public_key
+        self.certificate = certificate
 
     @classmethod
-    def for_filename(cls, filename):
-        return cls(pathlib.Path(filename).stem)
+    def for_filename(cls, filename) -> "KeyPair":
+        instance = cls(None, None, None)
+        instance.basename = pathlib.Path(filename).stem
+        return instance
 
     def exists(self) -> bool:
         return self.private_key_exists() or self.certificate_exists()

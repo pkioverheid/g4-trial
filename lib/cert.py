@@ -1,7 +1,8 @@
 import logging
 import os
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Union
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
@@ -133,14 +134,53 @@ def handle_extensions(builder, ext, enrollment, subject_keys, ca_keys, config):
     return builder
 
 
-def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:dict) -> x509.Certificate:
+def _parse_date_str(input: Union[str | datetime]) -> datetime:
+    if isinstance(input, datetime):
+        # Absolute date in the correct type
+        return input
+    elif input == 'now':
+        return datetime.now(timezone.utc)
 
-    issuer_name = issuer_keys.certificate.subject if issuer_keys.certificate is not None else as_name(issuer['subject'])
+    # assume date time format as string: parse
+    d = datetime.fromisoformat(input)
+
+    # If no timezone was included, assume UTC
+    if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
+        return d.replace(tzinfo=timezone.utc)
+
+    return d
+
+
+def _parse_not_after(input: Union[str | datetime], not_before: datetime, issuer_not_valid_after: Union[datetime | None]) -> datetime:
+    if isinstance(input, datetime):
+        # Absolute date
+        return input
+    
+    match = re.match("^issuer([0-9-+]+)d$", input)
+    if match:
+        if not issuer_not_valid_after:
+            raise ValueError(f'Certificate notAfter date depends on issuer, but has not been defined')
+        
+        # Is a period relative to the issuer's notAfter. NOTE: last second is inclusive, therefore substract one second
+        return issuer_not_valid_after + timedelta(days=int(match.group(1)), seconds=-1)
+    
+    match = re.match("^([0-9]+)d$", input)
+    if match:
+        # Relative date into the future
+        return not_before + timedelta(days=int(match.group(1)), seconds=-1)
+    
+    # Assume date time formated as string
+    return _parse_date_str(input)
+
+
+def sign(profile:dict, enrollment:dict, issuer_enrollment:dict, subject_keys:KeyPair, issuer_keys:KeyPair, config:Config) -> x509.Certificate:
+
+    issuer_name = issuer_keys.certificate.subject if issuer_keys.certificate is not None else as_name(issuer_enrollment['subject'])
     
     logger.debug(f"Signing certificate {as_name(enrollment['subject']).rfc4514_string()} using {issuer_name.rfc4514_string()}")
 
     # Replace placeholders with actual values
-    replacements = config.copy()
+    replacements = config.as_dict()
     replacements['issuerBaseName'] = issuer_keys.basename
     if keys_exist(profile, ['extensions', 'authorityInfoAccess', 'caIssuers']):
         profile['extensions']['authorityInfoAccess']['caIssuers'] = profile['extensions']['authorityInfoAccess']['caIssuers'] % replacements
@@ -148,30 +188,8 @@ def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issue
         profile['extensions']['cRLDistributionPoints']['value'] = [value % replacements for value in profile['extensions']['cRLDistributionPoints']['value']]
 
     # Validity
-    if isinstance(profile['validity']['notBefore'], datetime):
-        # Absolute date
-        not_before = profile['validity']['notBefore']
-    elif profile['validity']['notBefore'] == 'now':
-        not_before = datetime.now(UTC)
-    else:  # assume date time format as string
-        not_before = datetime.fromisoformat(profile['validity']['notBefore'])
-
-    if isinstance(profile['validity']['notAfter'], datetime):
-        # Absolute date
-        not_after = profile['validity']['notAfter']
-    else:
-        match = re.match("^issuer([0-9-+]+)d$", profile['validity']['notAfter'])
-        if match:
-            # Is a period relative to the issuer's notAfter. NOTE: last second is inclusive, therefore substract one second
-            not_after = issuer_keys.certificate.not_valid_after_utc + timedelta(days=int(match.group(1)), seconds=-1)
-        else:
-            match = re.match("^([0-9]+)d$", profile['validity']['notAfter'])
-            if match:
-                # Relative date into the future
-                not_after = not_before + timedelta(days=int(match.group(1)), seconds=-1)
-            else:
-                # assume date time format as string
-                not_after = datetime.fromisoformat(profile['validity']['notAfter'])
+    not_before = _parse_date_str(profile['validity']['notBefore'])
+    not_after = _parse_not_after(profile['validity']['notAfter'], not_before, issuer_keys.certificate.not_valid_after_utc if issuer_keys.certificate_exists() else None)
 
     # Generate a random Serial number (20 octets)
     serial_number = int.from_bytes(os.urandom(20), "big") >> 1
@@ -212,12 +230,12 @@ def sign(profile:dict, enrollment:dict, issuer:dict, subject_keys:KeyPair, issue
     return cert
 
 
-def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict, issuer_password=None, subject_password=None):
+def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: Config, issuer_password=None, subject_password=None) -> None:
     validate(enrollment, profile)
 
     # Find issuer keypair by its DN from its enrollment
     issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
-    issuer_keys = KeyPair(os.path.splitext(profile['issuer'])[0])
+    issuer_keys = KeyPair.for_filename(os.path.splitext(profile['issuer'])[0])
 
     selfsigned = issuer['subject'] == enrollment['subject']
     if selfsigned:
@@ -250,7 +268,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
     with open(filename, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.DER))
 
-    log = Eventlog(Config.from_yaml("config.yaml"))
+    log = Eventlog(Config.from_file("config.yaml"))
     log.log_issued_cert(issuer_keys, subject_keys)
 
     logger.info(f"Certificate issued and saved to {filename}")
