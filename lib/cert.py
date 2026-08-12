@@ -7,8 +7,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509 import UnrecognizedExtension
 from cryptography.x509.oid import ObjectIdentifier
 
-from lib import dates
-from lib.ra import validate
+from lib import dates, ra
 
 from .config import Config
 from .events import Eventlog
@@ -197,11 +196,11 @@ class IssueService:
         return cert
 
     def process(self, profile: dict, enrollment: dict, subject_keys: KeyPair, issuer_password=None, subject_password=None) -> None:
-        validate(enrollment, profile)
+        ra.validate(enrollment, profile)
 
         # Find issuer keypair by its DN from its enrollment
         issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
-        issuer_keys = KeyPair.for_filename(self.config.base_dir, os.path.splitext(profile['issuer'])[0])
+        issuer_keys = KeyPair.for_filename(os.path.splitext(profile['issuer'])[0])
 
         selfsigned = issuer['subject'] == enrollment['subject']
         if selfsigned:

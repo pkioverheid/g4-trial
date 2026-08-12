@@ -119,13 +119,13 @@ if __name__ == "__main__":
         # Load subject public key from CSR
         subject_keys = (
             KeyPair
-            .for_filename(config.base_dir, csrfile)
+            .for_filename(csrfile)
             .load_from_csr(csr)
         )
 
         # Load issuer's keys
         issuer_profile = load_yaml(os.path.join('enrollment', subject_profile['issuer']))
-        issuer_keys = KeyPair.for_filename(config.base_dir, generate_basename(issuer_profile['subject']))
+        issuer_keys = KeyPair.for_filename(generate_basename(issuer_profile['subject']))
         try:
             issuer_keys.load(password=args.issuer_password)
         except FileNotFoundError:
@@ -139,6 +139,8 @@ if __name__ == "__main__":
         filename = subject_keys.derfile
         with open(filename, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.DER))
+
+        event_log.log_issued_cert(issuer_keys, subject_keys)
 
         if args.write_full_chain:
             write_full_chain(subject_keys, subject_profile)

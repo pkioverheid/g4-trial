@@ -7,7 +7,6 @@ from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509 import (
     CertificateRevocationList,
-    CRLNumber,
     ReasonFlags,
     load_der_x509_crl,
 )
@@ -95,7 +94,7 @@ class CRLService:
         # Find keys
         ca_keys = (
             KeyPair
-            .for_filename(self.config.base_dir, revocationfile)
+            .for_filename(revocationfile)
             .load(password=issuer_password)
             )
 
@@ -123,7 +122,7 @@ class CRLService:
             output_errors(result.output("detailed")["errors"])
             raise ValueError('Invalid revocations')
 
-        filename = os.path.join(self.config.base_dir, 'crl', f"{ca_keys.basename}.crl")
+        filename = os.path.join(ca_keys.basedir, 'crl', f"{ca_keys.basename}.crl")
 
         current_crl_number = 0
         try:

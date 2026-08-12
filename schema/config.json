@@ -2,10 +2,6 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "baseDir": {
-      "type": "string",
-      "description": "Base directory where private keys, certificates and CRLs are placed on the local system"
-    },
     "logFilename": {
       "type": "string",
       "description": "Filename of the CA log. This file will contain CA events, such as certificate issuance."
@@ -40,6 +36,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["baseDir", "logFilename", "caIssuersBaseUrl", "cRLDistributionPointsBaseUrl", "crlRenewalHours", "pdsLocation"],
+  "required": ["logFilename", "caIssuersBaseUrl", "cRLDistributionPointsBaseUrl", "crlRenewalHours", "pdsLocation"],
   "additionalProperties": false
 }

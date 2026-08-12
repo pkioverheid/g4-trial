@@ -30,7 +30,7 @@ if __name__ == "__main__":
     for filename in args.enrollments:
         logger.info(f"Processing {filename}")
 
-        subject_keys = KeyPair.for_filename(config.base_dir, filename)
+        subject_keys = KeyPair.for_filename(filename)
         if subject_keys.exists():
             logger.error(f"Some files already exist for {filename}, skipping")
             continue

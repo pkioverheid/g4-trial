@@ -57,7 +57,7 @@ class RequestService:
                                 salt_length=force_int(profile.get('saltLength', 64))
                             ))
 
-    def verify(csr: CertificateSigningRequest) -> None:
+    def verify(self, csr: CertificateSigningRequest) -> None:
         """
         Verifies whether the CSR is acceptable to us. Raises an
         exception if it fails. 

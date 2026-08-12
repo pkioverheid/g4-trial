@@ -1,6 +1,5 @@
 import csv
 import datetime
-from os import path
 
 from cryptography import x509
 from cryptography.x509.extensions import AuthorityKeyIdentifier
@@ -15,9 +14,7 @@ class Eventlog:
         self.config = config
 
     def log(self, msg: str) -> None:
-        self.config.init()
-
-        with open(self.config.log_path, "a") as log:
+        with open(self.config.log_filename, "a") as log:
             str = '%(asctime)s;%(name)s;%(levelname)s;%(message)s\n' % { #noqa: UP031
                 'asctime': datetime.datetime.now(datetime.timezone.utc),
                 'name': 'events',
@@ -44,7 +41,7 @@ class Eventlog:
         """
         Looks up the basename of a certificate by its issuer DN and serial number in the event log file.
         """
-        with open(self.config.log_path, encoding="utf-8") as f:
+        with open(self.config.log_filename, encoding="utf-8") as f:
             for row in csv.reader(f, delimiter=";"):
                 if row[3] != "issued":
                     continue

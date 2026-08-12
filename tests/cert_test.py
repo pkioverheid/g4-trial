@@ -31,10 +31,12 @@ class TestCert(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.config = Config(base_dir="__test").init()
+        cls.config = Config()
         cls.service = IssueService(cls.config, Eventlog(cls.config))
 
     def test_sign(self):
+
+        config = Config()
 
         with open("testdata/G4TRIALEEEUTLGSigsLP2025_profile.yaml") as f:
             profile = yaml.safe_load(f)
@@ -42,7 +44,7 @@ class TestCert(unittest.TestCase):
         with open("testdata/G4TRIALEEEUTLGSigsLP2025_enrollment.yaml") as f:
             enrollment = yaml.safe_load(f)
 
-        subject_keys = KeyPair.for_filename(self.config.base_dir, "test").generate_private_key(profile)
+        subject_keys = KeyPair.for_filename("test").generate_private_key(profile)
         issuer_keys = subject_keys
 
         cert = self.service.sign(profile, enrollment, enrollment, subject_keys, issuer_keys)

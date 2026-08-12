@@ -7,6 +7,13 @@ from jschon import JSON, JSONSchema, create_catalog
 
 from lib.util import output_errors
 
+BASEDIR = 'ca'
+
+# Ensure our output directories exist
+for dir in [BASEDIR, os.path.join(BASEDIR, 'private'), os.path.join(BASEDIR, 'certs'), os.path.join(BASEDIR, 'crl')]:
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
+
 
 @dataclass(frozen=True)
 class PDSLocation:
@@ -29,27 +36,12 @@ class PDSLocation:
 
 @dataclass(frozen=True)
 class Config:
-    base_dir: str = 'ca'
-    log_filename: str = 'events.txt'
+    log_filename: str = 'ca/events.txt'
     ca_issuers_base_url: str = 'http://cert.pkioverheid.nl'
     crl_distribution_points_base_url: str = 'http://crl.pkioverheid.nl'
     crl_renewal_hours: int = 48
     pds_location: PDSLocation = PDSLocation('https://www.github.com/pkioverheid/g4-trial', 'en')
 
-    log_path = property(lambda self: os.path.join(self.base_dir, self.log_filename))
-
-    def init(self) -> "Config":
-        # Ensure our output directories exist
-        for dir in [
-                self.base_dir, 
-                os.path.join(self.base_dir, 'private'), 
-                os.path.join(self.base_dir, 'certs'), 
-                os.path.join(self.base_dir, 'crl')
-            ]:
-            if not os.path.isdir(dir):
-                os.mkdir(dir)
-        return self
-    
     @classmethod
     def from_file(cls, filename: str) -> "Config":
         try:
@@ -68,25 +60,24 @@ class Config:
         instance = JSON(data)
         result = schema.evaluate(instance)
         if not result.valid:
-            print(f"Invalid configuration: ")
+            print("Invalid configuration: ")
             output_errors(result.output("detailed")["errors"])
-            raise SyntaxError(f"Invalid configuration")
+            raise SyntaxError("Invalid configuration")
 
         return cls(
-            base_dir=data["baseDir"],
             log_filename=data["logFilename"],
             ca_issuers_base_url=data["caIssuersBaseUrl"],
             crl_distribution_points_base_url=data["cRLDistributionPointsBaseUrl"],
             crl_renewal_hours=data["crlRenewalHours"],
             pds_location=PDSLocation(data["pdsLocation"]["url"], data["pdsLocation"]["language"])
-        ).init()
+        )
 
     def as_dict(self) -> dict:
         return {
-            'baseDir': self.base_dir,
             'logFilename': self.log_filename,
             'caIssuersBaseUrl': self.ca_issuers_base_url,
             'cRLDistributionPointsBaseUrl': self.crl_distribution_points_base_url,
             'crlRenewalHours': self.crl_renewal_hours,
             'pdsLocation': self.pds_location.as_dict()
         }
+

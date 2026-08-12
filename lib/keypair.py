@@ -12,6 +12,7 @@ from cryptography.x509 import (
     load_pem_x509_certificate,
 )
 
+from lib.config import BASEDIR
 from lib.util import force_int
 
 
@@ -32,19 +33,19 @@ def get_hash_algo(name):
 
 class KeyPair:
 
-    privatekeyfile = property(lambda self: os.path.join(self.base_dir, 'private', f'{self.basename}.key'))
-    derfile = property(lambda self: os.path.join(self.base_dir, 'certs', f'{self.basename}.cer'))
-    pemfile = property(lambda self: os.path.join(self.base_dir, 'certs', f'{self.basename}.pem'))
+    privatekeyfile = property(lambda self: os.path.join(self.basedir, 'private', f'{self.basename}.key'))
+    derfile = property(lambda self: os.path.join(self.basedir, 'certs', f'{self.basename}.cer'))
+    pemfile = property(lambda self: os.path.join(self.basedir, 'certs', f'{self.basename}.pem'))
 
     def __init__(self, private_key, public_key, certificate):
+        self.basedir = BASEDIR
         self.private_key = private_key
         self.public_key = public_key
         self.certificate = certificate
 
     @classmethod
-    def for_filename(cls, base_dir: str,filename: str) -> "KeyPair":
+    def for_filename(cls, filename) -> "KeyPair":
         instance = cls(None, None, None)
-        instance.base_dir = base_dir
         instance.basename = pathlib.Path(filename).stem
         return instance
 
