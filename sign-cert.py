@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
         # Load issuer's keys
         issuer_profile = load_yaml(os.path.join('enrollment', subject_profile['issuer']))
-        issuer_keys = KeyPair(generate_basename(issuer_profile['subject']))
+        issuer_keys = KeyPair.for_filename(generate_basename(issuer_profile['subject']))
         try:
             issuer_keys.load(password=args.issuer_password)
         except FileNotFoundError:

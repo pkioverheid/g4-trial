@@ -217,7 +217,7 @@ def process(profile: dict, enrollment: dict, subject_keys: KeyPair, config: dict
 
     # Find issuer keypair by its DN from its enrollment
     issuer = load_yaml(os.path.join('enrollment', profile['issuer']))
-    issuer_keys = KeyPair(os.path.splitext(profile['issuer'])[0])
+    issuer_keys = KeyPair.for_filename(os.path.splitext(profile['issuer'])[0])
 
     selfsigned = issuer['subject'] == enrollment['subject']
     if selfsigned:

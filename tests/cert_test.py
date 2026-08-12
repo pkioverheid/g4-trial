@@ -38,7 +38,7 @@ class TestCert(unittest.TestCase):
         with open("testdata/G4TRIALEEEUTLGSigsLP2025_enrollment.yaml") as f:
             enrollment = yaml.safe_load(f)
 
-        subject_keys = KeyPair("test").generate_private_key(profile)
+        subject_keys = KeyPair.for_filename("test").generate_private_key(profile)
         issuer_keys = subject_keys
 
         cert = sign(profile, enrollment, enrollment, subject_keys, issuer_keys, config)
