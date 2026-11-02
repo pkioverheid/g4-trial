@@ -2,7 +2,7 @@ import hashlib
 import re
 
 from asn1crypto.x509 import NameType
-from cryptography.x509 import Name
+from cryptography.x509 import Name, NameAttribute
 from cryptography.x509.oid import NameOID
 
 
@@ -54,9 +54,9 @@ def as_name(d: dict):
     for attribute in attributes:
         for k, v in d.items():
             if k in attribute.names():
-                merged.append(f'{attribute.oid.dotted_string}={v}')
+                merged.append(NameAttribute(attribute.oid, v))
 
-    return Name.from_rfc4514_string(','.join(reversed(merged)))
+    return Name(merged)
 
 
 def as_dict(n: Name):
